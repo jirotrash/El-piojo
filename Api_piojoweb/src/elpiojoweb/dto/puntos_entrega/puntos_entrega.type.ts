@@ -8,6 +8,9 @@ export class PuntosEntregaType {
   @Field()
   nombre: string;
 
+  @Field(() => Int, { nullable: true })
+  id_municipios?: number;
+
   @Field(() => Float)
   latitud: number;
 

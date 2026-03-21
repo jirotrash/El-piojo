@@ -56,6 +56,7 @@ type HistorialTratosType {
 
 type MunicipiosType {
   id_municipios: Int!
+  id_estados: Int
   nombre: String!
 }
 
@@ -87,6 +88,7 @@ type PublicacionesType {
 type PuntosEntregaType {
   id_puntos_entrega: Int!
   nombre: String!
+  id_municipios: Int
   latitud: Float!
   longitud: Float!
   descripcion: String
@@ -146,6 +148,18 @@ type Mutation {
   createElpiojoweb(createElpiojowebInput: CreateElpiojowebInput!): Elpiojoweb!
   updateElpiojoweb(updateElpiojowebInput: UpdateElpiojowebInput!): Elpiojoweb!
   removeElpiojoweb(id: Int!): Elpiojoweb!
+  createCarrera(input: CreateCarreraInput!): CarrerasType!
+  updateCarrera(id: Int!, input: UpdateCarreraInput!): CarrerasType!
+  removeCarrera(id: Int!): Boolean!
+  createEstado(input: CreateEstadosInput!): EstadosType!
+  updateEstado(id: Int!, input: UpdateEstadosInput!): EstadosType!
+  removeEstado(id: Int!): Boolean!
+  createMunicipio(input: CreateMunicipiosInput!): MunicipiosType!
+  updateMunicipio(id: Int!, input: UpdateMunicipiosInput!): MunicipiosType!
+  removeMunicipio(id: Int!): Boolean!
+  createPuntoEntrega(input: CreatePuntosEntregaInput!): PuntosEntregaType!
+  updatePuntoEntrega(id: Int!, input: UpdatePuntosEntregaInput!): PuntosEntregaType!
+  removePuntoEntrega(id: Int!): Boolean!
 }
 
 input CreateElpiojowebInput {
@@ -155,4 +169,47 @@ input CreateElpiojowebInput {
 input UpdateElpiojowebInput {
   name: String
   id: Int!
+}
+
+input CreateCarreraInput {
+  nombre: String!
+  universidad: String!
+}
+
+input UpdateCarreraInput {
+  id_carreras: ID!
+}
+
+input CreateEstadosInput {
+  nombre: String!
+}
+
+input UpdateEstadosInput {
+  nombre: String
+}
+
+input CreateMunicipiosInput {
+  id_estados: Int!
+  nombre: String!
+}
+
+input UpdateMunicipiosInput {
+  id_estados: Int
+  nombre: String
+}
+
+input CreatePuntosEntregaInput {
+  id_municipios: Int!
+  nombre: String!
+  latitud: Float!
+  longitud: Float!
+  descripcion: String
+}
+
+input UpdatePuntosEntregaInput {
+  id_municipios: Int
+  nombre: String
+  latitud: Float
+  longitud: Float
+  descripcion: String
 }

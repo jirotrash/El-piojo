@@ -1,5 +1,4 @@
-import { InputType } from '@nestjs/graphql';
-import { PartialType } from '@nestjs/mapped-types';
+import { InputType, PartialType } from '@nestjs/graphql';
 import { CreateMunicipiosInput } from './create-municipios.input';
 
 @InputType()

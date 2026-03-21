@@ -13,20 +13,35 @@ export class MunicipiosService {
 	) {}
 
 	create(createDto: CreateMunicipiosInput) {
-		const ent = this.repo.create(createDto as any);
+		// If caller provides id_estados, map it into the relation field so TypeORM sets the FK.
+		const payload: any = { ...createDto };
+		if ((createDto as any).id_estados) {
+			payload.estado = { id_estados: (createDto as any).id_estados };
+			delete payload.id_estados;
+		}
+		const ent = this.repo.create(payload as any);
 		return this.repo.save(ent);
 	}
 
 	findAll() {
-		return this.repo.find();
+		return this.repo.find({ relations: ['estado'] }).then(list =>
+			list.map(item => ({ ...item, id_estados: item.estado ? (item.estado as any).id_estados : null }))
+		);
 	}
 
 	findOne(id: number) {
-		return this.repo.findOne({ where: { id_municipios: id } });
+		return this.repo.findOne({ where: { id_municipios: id }, relations: ['estado'] }).then(item =>
+			item ? ({ ...item, id_estados: item.estado ? (item.estado as any).id_estados : null }) : null
+		);
 	}
 
 	async update(id: number, updateDto: UpdateMunicipiosInput) {
-		await this.repo.update({ id_municipios: id } as any, updateDto as any);
+		const payload: any = { ...updateDto };
+		if ((updateDto as any).id_estados) {
+			payload.estado = { id_estados: (updateDto as any).id_estados };
+			delete payload.id_estados;
+		}
+		await this.repo.update({ id_municipios: id } as any, payload as any);
 		return this.findOne(id);
 	}
 
