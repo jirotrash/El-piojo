@@ -5,6 +5,15 @@ export class UsuariosType {
   @Field(() => Int)
   id_usuarios: number;
 
+  @Field(() => Int, { nullable: true })
+  id_roles?: number;
+
+  @Field(() => Int, { nullable: true })
+  id_carreras?: number;
+
+  @Field(() => Int, { nullable: true })
+  id_municipios?: number;
+
   @Field()
   nombre: string;
 

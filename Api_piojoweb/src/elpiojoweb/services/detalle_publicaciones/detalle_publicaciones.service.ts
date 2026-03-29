@@ -21,6 +21,23 @@ export class DetallePublicacionesService {
 		return this.repo.find();
 	}
 
+	// return detalle_publicaciones rows that are not linked to any publicacion (id_publicaciones IS NULL)
+	findOrphans() {
+		return this.repo.createQueryBuilder('d')
+			.where('d.id_publicaciones IS NULL')
+			.orderBy('d.id_detalle_publicaciones', 'ASC')
+			.getMany();
+	}
+
+	async assignToPublication(detalleId: number, publicacionId: number) {
+		// use update to set relation
+		await this.repo.createQueryBuilder()
+			.update()
+			.set({ publicacion: { id_publicaciones: publicacionId } as any })
+			.where({ id_detalle_publicaciones: detalleId })
+			.execute();
+	}
+
 	findOne(id: number) {
 		return this.repo.findOne({ where: { id_detalle_publicaciones: id } });
 	}

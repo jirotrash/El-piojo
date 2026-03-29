@@ -15,7 +15,7 @@ export class DetallePublicaciones {
   @JoinColumn({ name: 'id_detalle_mensajes' })
   detalle_mensaje?: DetalleMensajes;
 
-  @Column({ length: 255 })
+  @Column({ type: 'text' })
   url_foto: string;
 
   @Column({ default: false })

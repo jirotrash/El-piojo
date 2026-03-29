@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import UploadController from './upload/upload.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ElpiojowebModule } from './elpiojoweb/elpiojoweb.module';
 
@@ -28,7 +29,7 @@ import { join } from 'path';
     ElpiojowebModule
 
   ],
-  controllers: [AppController],
+  controllers: [AppController, UploadController],
   providers: [AppService],
 })
 export class AppModule {}

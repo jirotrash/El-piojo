@@ -1,9 +1,16 @@
 import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
+import { DetallePublicacionesType } from '../detalle_publicaciones/detalle_publicaciones.type';
 
 @ObjectType()
 export class PublicacionesType {
   @Field(() => Int)
   id_publicaciones: number;
+
+  @Field(() => Int, { nullable: true })
+  id_usuarios?: number;
+
+  @Field(() => Int, { nullable: true })
+  id_puntos_entrega?: number;
 
   @Field()
   titulo: string;
@@ -37,4 +44,7 @@ export class PublicacionesType {
 
   @Field()
   fecha_publicacion: string;
+
+  @Field(() => [DetallePublicacionesType], { nullable: true })
+  detallePublicaciones?: DetallePublicacionesType[];
 }

@@ -18,11 +18,21 @@ export class PublicacionesService {
 	}
 
 	findAll() {
-		return this.repo.find();
+		// Include relations so resolver can map FK scalar fields (usuario, punto_entrega)
+		// and load fotos so GraphQL can return detallePublicaciones
+		return this.repo.find({ relations: ['usuario', 'punto_entrega', 'fotos'] });
 	}
 
 	findOne(id: number) {
-		return this.repo.findOne({ where: { id_publicaciones: id } });
+		return this.repo.findOne({ where: { id_publicaciones: id }, relations: ['usuario', 'punto_entrega', 'fotos'] });
+	}
+
+	// publicaciones that currently have no detalle_publicaciones linked
+	findWithoutFotos() {
+		return this.repo.createQueryBuilder('p')
+			.leftJoin('p.fotos', 'f')
+			.where('f.id_detalle_publicaciones IS NULL')
+			.getMany();
 	}
 
 	async update(id: number, updateDto: UpdatePublicacionesInput) {

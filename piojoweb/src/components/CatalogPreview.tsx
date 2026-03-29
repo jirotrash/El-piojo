@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import featuredImg from "@/assets/featured-items.png";
 
 const items = [
@@ -70,6 +71,12 @@ const CatalogPreview = () => {
               </div>
             </motion.div>
           ))}
+        </div>
+
+        <div className="mt-10 text-center">
+          <Link to="/catalogo" target="_blank" className="inline-flex items-center gap-2 bg-gradient-hero text-primary-foreground font-display font-bold px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
+            Ver catálogo completo →
+          </Link>
         </div>
       </div>
     </section>

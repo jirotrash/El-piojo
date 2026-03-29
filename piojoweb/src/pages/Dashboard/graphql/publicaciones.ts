@@ -2,6 +2,8 @@ export const PUBLICACIONES_QUERY = `
   query Publicaciones {
     publicaciones {
       id_publicaciones
+      id_usuarios
+      id_puntos_entrega
       titulo
       descripcion
       categoria
@@ -13,6 +15,10 @@ export const PUBLICACIONES_QUERY = `
       precio
       disponible
       fecha_publicacion
+      detallePublicaciones {
+        url_foto
+        es_portada
+      }
     }
   }
 `;

@@ -32,6 +32,7 @@ type DetalleMensajesType {
 
 type DetallePublicacionesType {
   id_detalle_publicaciones: Int!
+  id_publicaciones: Int
   url_foto: String!
   es_portada: Boolean!
 }
@@ -72,6 +73,8 @@ type PagosType {
 
 type PublicacionesType {
   id_publicaciones: Int!
+  id_usuarios: Int
+  id_puntos_entrega: Int
   titulo: String!
   descripcion: String
   categoria: String!
@@ -83,6 +86,7 @@ type PublicacionesType {
   precio: Float!
   disponible: Boolean!
   fecha_publicacion: String!
+  detallePublicaciones: [DetallePublicacionesType!]
 }
 
 type PuntosEntregaType {
@@ -101,6 +105,9 @@ type RolesType {
 
 type UsuariosType {
   id_usuarios: Int!
+  id_roles: Int
+  id_carreras: Int
+  id_municipios: Int
   nombre: String!
   apellido_paterno: String!
   apellido_materno: String
@@ -140,7 +147,7 @@ type Query {
   puntoEntrega(id: Int!): PuntosEntregaType!
   roles: [RolesType!]!
   role(id: Int!): RolesType!
-  usuarios: [UsuariosType!]!
+  usuarios(page: Int, limit: Int): [UsuariosType!]!
   usuario(id: Int!): UsuariosType!
 }
 
@@ -151,15 +158,28 @@ type Mutation {
   createCarrera(input: CreateCarreraInput!): CarrerasType!
   updateCarrera(id: Int!, input: UpdateCarreraInput!): CarrerasType!
   removeCarrera(id: Int!): Boolean!
+  createDetallePublicacion(input: CreateDetallePublicacionesInput!): DetallePublicacionesType!
+  updateDetallePublicacion(id: Int!, input: UpdateDetallePublicacionesInput!): DetallePublicacionesType!
+  removeDetallePublicacion(id: Int!): Boolean!
   createEstado(input: CreateEstadosInput!): EstadosType!
   updateEstado(id: Int!, input: UpdateEstadosInput!): EstadosType!
   removeEstado(id: Int!): Boolean!
   createMunicipio(input: CreateMunicipiosInput!): MunicipiosType!
   updateMunicipio(id: Int!, input: UpdateMunicipiosInput!): MunicipiosType!
   removeMunicipio(id: Int!): Boolean!
+  createPublicacion(input: CreatePublicacionesInput!): PublicacionesType!
+  backfillOrphanDetalles(dryRun: Boolean): String!
+  removePublicacion(id: Int!): Boolean!
   createPuntoEntrega(input: CreatePuntosEntregaInput!): PuntosEntregaType!
   updatePuntoEntrega(id: Int!, input: UpdatePuntosEntregaInput!): PuntosEntregaType!
   removePuntoEntrega(id: Int!): Boolean!
+  createRole(input: CreateRolesInput!): RolesType!
+  updateRole(id: Int!, input: UpdateRolesInput!): RolesType!
+  removeRole(id: Int!): Boolean!
+  createUsuario(input: CreateUsuariosInput!): UsuariosType!
+  login(email: String!, password: String!): String!
+  updateUsuario(id: Int!, input: UpdateUsuariosInput!): UsuariosType!
+  removeUsuario(id: Int!): Boolean!
 }
 
 input CreateElpiojowebInput {
@@ -180,6 +200,20 @@ input UpdateCarreraInput {
   id_carreras: ID!
 }
 
+input CreateDetallePublicacionesInput {
+  id_publicaciones: Int
+  id_detalle_mensajes: Int
+  url_foto: String!
+  es_portada: Boolean
+}
+
+input UpdateDetallePublicacionesInput {
+  id_publicaciones: Int
+  id_detalle_mensajes: Int
+  url_foto: String
+  es_portada: Boolean
+}
+
 input CreateEstadosInput {
   nombre: String!
 }
@@ -198,6 +232,35 @@ input UpdateMunicipiosInput {
   nombre: String
 }
 
+input CreatePublicacionesInput {
+  id_usuarios: Int!
+  id_puntos_entrega: Int
+  titulo: String!
+  descripcion: String
+  categoria: String!
+  talla: String
+  marca: String
+  color: String
+  genero: GeneroEnum!
+  estado_uso: EstadoUsoEnum!
+  precio: Float
+  disponible: Boolean
+  detallePublicaciones: [CreateDetallePublicacionesInput!]
+}
+
+enum GeneroEnum {
+  HOMBRE
+  MUJER
+  UNISEX
+  ACADEMICO
+}
+
+enum EstadoUsoEnum {
+  NUEVO
+  BUENO
+  USADO
+}
+
 input CreatePuntosEntregaInput {
   id_municipios: Int!
   nombre: String!
@@ -212,4 +275,42 @@ input UpdatePuntosEntregaInput {
   latitud: Float
   longitud: Float
   descripcion: String
+}
+
+input CreateRolesInput {
+  nombre: String!
+}
+
+input UpdateRolesInput {
+  nombre: String
+}
+
+input CreateUsuariosInput {
+  id_roles: Int
+  id_carreras: Int
+  id_municipios: Int!
+  nombre: String!
+  apellido_paterno: String!
+  apellido_materno: String
+  email: String!
+  password: String!
+  telefono: String
+  matricula: String
+  foto_perfil: String
+  direccion: String
+}
+
+input UpdateUsuariosInput {
+  id_roles: Int
+  id_carreras: Int
+  id_municipios: Int
+  nombre: String
+  apellido_paterno: String
+  apellido_materno: String
+  email: String
+  password: String
+  telefono: String
+  matricula: String
+  foto_perfil: String
+  direccion: String
 }

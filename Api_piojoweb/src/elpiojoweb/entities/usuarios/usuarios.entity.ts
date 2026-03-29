@@ -43,7 +43,7 @@ export class Usuarios {
   @Column({ length: 20, nullable: true })
   matricula?: string;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ type: 'text', nullable: true })
   foto_perfil?: string;
 
   @Column({ type: 'text', nullable: true })

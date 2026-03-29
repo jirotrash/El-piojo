@@ -76,6 +76,7 @@ export interface Publicacion {
   precio: number;
   disponible: boolean;
   fecha_publicacion: string;
+  detallePublicaciones?: DetallePublicacion[];
 }
 export const publicaciones: Publicacion[] = [];
 

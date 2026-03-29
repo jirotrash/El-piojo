@@ -11,3 +11,17 @@ export const piojoApi = axios.create({
         'Content-Type': 'application/json',
     },
 });
+
+// Attach Authorization header from localStorage token (if present)
+piojoApi.interceptors.request.use((config) => {
+    try {
+        const token = localStorage.getItem('piojo-token');
+        if (token) {
+            config.headers = config.headers || {};
+            config.headers['Authorization'] = `Bearer ${token}`;
+        }
+    } catch (e) {
+        // ignore
+    }
+    return config;
+});

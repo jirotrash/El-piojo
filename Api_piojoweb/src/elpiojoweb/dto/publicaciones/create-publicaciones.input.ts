@@ -1,5 +1,6 @@
-import { InputType, Field, Int, Float } from '@nestjs/graphql';
+import { InputType, Field, Int, Float, registerEnumType } from '@nestjs/graphql';
 import { IsNotEmpty, IsOptional, IsString, IsInt, IsEnum, IsNumber, IsBoolean } from 'class-validator';
+import { CreateDetallePublicacionesInput } from '../detalle_publicaciones/create-detalle_publicaciones.input';
 
 export enum GeneroEnum {
 	HOMBRE = 'HOMBRE',
@@ -13,6 +14,9 @@ export enum EstadoUsoEnum {
 	BUENO = 'BUENO',
 	USADO = 'USADO',
 }
+
+registerEnumType(GeneroEnum, { name: 'GeneroEnum' });
+registerEnumType(EstadoUsoEnum, { name: 'EstadoUsoEnum' });
 
 @InputType()
 export class CreatePublicacionesInput {
@@ -72,5 +76,9 @@ export class CreatePublicacionesInput {
 	@IsOptional()
 	@IsBoolean()
 	disponible?: boolean;
+
+	@Field(() => [CreateDetallePublicacionesInput], { nullable: true })
+	@IsOptional()
+	detallePublicaciones?: CreateDetallePublicacionesInput[];
 }
 

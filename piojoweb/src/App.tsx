@@ -2,12 +2,19 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, RequireAuth } from "@/components/AuthProvider";
+import RequireAdmin from "@/components/RequireAdmin";
 import Login from "./pages/Login";
 import LoginDashboard from "./pages/Dashboard/pages/LoginDashboard";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./components/ThemeProvider";
 import Index from "./pages/Index";
+import Register from "./pages/Register";
+import Catalog from "./pages/Catalog";
+import ProductDetail from "./pages/ProductDetail";
+import Profile from "./pages/Profile";
+import Vender from "./pages/Vender";
+import Sell from "./pages/Sell";
 import DashboardIndex from "./pages/Dashboard/pages/indexDashboard";
 import { DashboardLayout } from "./pages/Dashboard/components/DashboardLayout";
 import UsuariosPage from "./pages/Dashboard/pages/UsuariosPage";
@@ -39,25 +46,31 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/catalogo" element={<Catalog />} />
+              <Route path="/producto/:id" element={<ProductDetail />} />
+              <Route path="/perfil" element={<Profile />} />
+              <Route path="/vender" element={<Vender />} />
+              <Route path="/sell" element={<Sell />} />
               <Route path="/dashboard/login" element={<LoginDashboard />} />
 
-              <Route path="/dashboard" element={<RequireAuth redirectTo="/dashboard/login"><DashboardLayout><DashboardIndex /></DashboardLayout></RequireAuth>} />
-              <Route path="/dashboard/usuarios" element={<RequireAuth><DashboardLayout><UsuariosPage /></DashboardLayout></RequireAuth>} />
-              <Route path="/dashboard/usuarios" element={<RequireAuth redirectTo="/dashboard/login"><DashboardLayout><UsuariosPage /></DashboardLayout></RequireAuth>} />
-              <Route path="/dashboard/roles" element={<RequireAuth redirectTo="/dashboard/login"><DashboardLayout><RolesPage /></DashboardLayout></RequireAuth>} />
-              <Route path="/dashboard/publicaciones" element={<RequireAuth><DashboardLayout><PublicacionesPage /></DashboardLayout></RequireAuth>} />
-              <Route path="/dashboard/publicaciones" element={<RequireAuth redirectTo="/dashboard/login"><DashboardLayout><PublicacionesPage /></DashboardLayout></RequireAuth>} />
-              <Route path="/dashboard/detalle-publicaciones" element={<RequireAuth redirectTo="/dashboard/login"><DashboardLayout><DetallePublicacionesPage /></DashboardLayout></RequireAuth>} />
-              <Route path="/dashboard/estados" element={<RequireAuth redirectTo="/dashboard/login"><DashboardLayout><EstadosPage /></DashboardLayout></RequireAuth>} />
-              <Route path="/dashboard/municipios" element={<RequireAuth redirectTo="/dashboard/login"><DashboardLayout><MunicipioPage /></DashboardLayout></RequireAuth>} />
-              <Route path="/dashboard/puntos-entrega" element={<RequireAuth redirectTo="/dashboard/login"><DashboardLayout><PuntosEntregaPage /></DashboardLayout></RequireAuth>} />
-              <Route path="/dashboard/carreras" element={<RequireAuth redirectTo="/dashboard/login"><DashboardLayout><CarrerasPage /></DashboardLayout></RequireAuth>} />
-              <Route path="/dashboard/conversaciones" element={<RequireAuth redirectTo="/dashboard/login"><DashboardLayout><ConversacionesPage /></DashboardLayout></RequireAuth>} />
-              <Route path="/dashboard/mensajes" element={<RequireAuth redirectTo="/dashboard/login"><DashboardLayout><MensajesPage /></DashboardLayout></RequireAuth>} />
-              <Route path="/dashboard/pagos" element={<RequireAuth redirectTo="/dashboard/login"><DashboardLayout><PagosPage /></DashboardLayout></RequireAuth>} />
-              <Route path="/dashboard/detalle-ventas" element={<RequireAuth redirectTo="/dashboard/login"><DashboardLayout><DetalleVentasPage /></DashboardLayout></RequireAuth>} />
-              <Route path="/dashboard/historial-tratos" element={<RequireAuth redirectTo="/dashboard/login"><DashboardLayout><HistorialTratosPage /></DashboardLayout></RequireAuth>} />
-              <Route path="/dashboard/cupones" element={<RequireAuth redirectTo="/dashboard/login"><DashboardLayout><CuponesPage /></DashboardLayout></RequireAuth>} />
+              <Route path="/dashboard" element={<RequireAdmin redirectTo="/dashboard/login"><DashboardLayout><DashboardIndex /></DashboardLayout></RequireAdmin>} />
+              <Route path="/dashboard/usuarios" element={<RequireAdmin redirectTo="/dashboard/login"><DashboardLayout><UsuariosPage /></DashboardLayout></RequireAdmin>} />
+              <Route path="/dashboard/usuarios" element={<RequireAdmin redirectTo="/dashboard/login"><DashboardLayout><UsuariosPage /></DashboardLayout></RequireAdmin>} />
+              <Route path="/dashboard/roles" element={<RequireAdmin redirectTo="/dashboard/login"><DashboardLayout><RolesPage /></DashboardLayout></RequireAdmin>} />
+              <Route path="/dashboard/publicaciones" element={<RequireAdmin redirectTo="/dashboard/login"><DashboardLayout><PublicacionesPage /></DashboardLayout></RequireAdmin>} />
+              <Route path="/dashboard/publicaciones" element={<RequireAdmin redirectTo="/dashboard/login"><DashboardLayout><PublicacionesPage /></DashboardLayout></RequireAdmin>} />
+              <Route path="/dashboard/detalle-publicaciones" element={<RequireAdmin redirectTo="/dashboard/login"><DashboardLayout><DetallePublicacionesPage /></DashboardLayout></RequireAdmin>} />
+              <Route path="/dashboard/estados" element={<RequireAdmin redirectTo="/dashboard/login"><DashboardLayout><EstadosPage /></DashboardLayout></RequireAdmin>} />
+              <Route path="/dashboard/municipios" element={<RequireAdmin redirectTo="/dashboard/login"><DashboardLayout><MunicipioPage /></DashboardLayout></RequireAdmin>} />
+              <Route path="/dashboard/puntos-entrega" element={<RequireAdmin redirectTo="/dashboard/login"><DashboardLayout><PuntosEntregaPage /></DashboardLayout></RequireAdmin>} />
+              <Route path="/dashboard/carreras" element={<RequireAdmin redirectTo="/dashboard/login"><DashboardLayout><CarrerasPage /></DashboardLayout></RequireAdmin>} />
+              <Route path="/dashboard/conversaciones" element={<RequireAdmin redirectTo="/dashboard/login"><DashboardLayout><ConversacionesPage /></DashboardLayout></RequireAdmin>} />
+              <Route path="/dashboard/mensajes" element={<RequireAdmin redirectTo="/dashboard/login"><DashboardLayout><MensajesPage /></DashboardLayout></RequireAdmin>} />
+              <Route path="/dashboard/pagos" element={<RequireAdmin redirectTo="/dashboard/login"><DashboardLayout><PagosPage /></DashboardLayout></RequireAdmin>} />
+              <Route path="/dashboard/detalle-ventas" element={<RequireAdmin redirectTo="/dashboard/login"><DashboardLayout><DetalleVentasPage /></DashboardLayout></RequireAdmin>} />
+              <Route path="/dashboard/historial-tratos" element={<RequireAdmin redirectTo="/dashboard/login"><DashboardLayout><HistorialTratosPage /></DashboardLayout></RequireAdmin>} />
+              <Route path="/dashboard/cupones" element={<RequireAdmin redirectTo="/dashboard/login"><DashboardLayout><CuponesPage /></DashboardLayout></RequireAdmin>} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

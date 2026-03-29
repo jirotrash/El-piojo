@@ -1,6 +1,6 @@
 export const CREATE_USUARIO = `
-mutation CreateUsuario($input: CreateUsuarioInput!) {
-  createUsuario(createUsuarioInput: $input) {
+mutation CreateUsuario($input: CreateUsuariosInput!) {
+  createUsuario(input: $input) {
     id_usuarios
     nombre
     apellido_paterno
@@ -16,8 +16,8 @@ mutation CreateUsuario($input: CreateUsuarioInput!) {
 `;
 
 export const UPDATE_USUARIO = `
-mutation UpdateUsuario($id: Int!, $input: UpdateUsuarioInput!) {
-  updateUsuario(updateUsuarioInput: $input) {
+mutation UpdateUsuario($id: Int!, $input: UpdateUsuariosInput!) {
+  updateUsuario(id: $id, input: $input) {
     id_usuarios
     nombre
     apellido_paterno

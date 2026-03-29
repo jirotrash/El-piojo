@@ -1,5 +1,4 @@
-import { InputType } from '@nestjs/graphql';
-import { PartialType } from '@nestjs/mapped-types';
+import { InputType, PartialType } from '@nestjs/graphql';
 import { CreateDetallePublicacionesInput } from './create-detalle_publicaciones.input';
 
 @InputType()

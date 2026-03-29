@@ -3,9 +3,10 @@ import { IsInt, IsNotEmpty, IsOptional, IsString, IsBoolean } from 'class-valida
 
 @InputType()
 export class CreateDetallePublicacionesInput {
-	@Field(() => Int)
+	@Field(() => Int, { nullable: true })
+	@IsOptional()
 	@IsInt()
-	id_publicaciones: number;
+	id_publicaciones?: number;
 
 	@Field(() => Int, { nullable: true })
 	@IsOptional()
