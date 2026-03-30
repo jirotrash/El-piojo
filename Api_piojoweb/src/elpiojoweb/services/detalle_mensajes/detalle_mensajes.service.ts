@@ -12,17 +12,34 @@ export class DetalleMensajesService {
 		private readonly repo: Repository<DetalleMensajes>,
 	) {}
 
-	create(createDto: CreateDetalleMensajesInput) {
+	async create(createDto: CreateDetalleMensajesInput) {
+		// Ensure relations are set so TypeORM writes the foreign key columns.
+		console.debug('DetalleMensajesService.create input:', createDto);
 		const ent = this.repo.create(createDto as any);
-		return this.repo.save(ent);
+		// If caller provided numeric FK ids, assign relation objects so join columns are populated.
+		try {
+			if ((createDto as any).id_conversaciones != null) {
+				(ent as any).conversacion = { id_conversaciones: Number((createDto as any).id_conversaciones) } as any;
+			}
+			if ((createDto as any).id_emisor != null) {
+				(ent as any).emisor = { id_usuarios: Number((createDto as any).id_emisor) } as any;
+			}
+		} catch (e) {
+			// ignore mapping errors and rely on raw input as fallback
+		}
+		console.debug('DetalleMensajesService.create entity prepared:', { conversacion: (ent as any).conversacion, emisor: (ent as any).emisor, mensaje: (ent as any).mensaje });
+		const saved = await this.repo.save(ent as any);
+		console.debug('DetalleMensajesService.create saved id:', (saved as any).id_detalle_mensajes);
+		// Return the entity with relations populated so GraphQL can resolve emisor/conversacion fields
+		return this.findOne((saved as any).id_detalle_mensajes);
 	}
 
 	findAll() {
-		return this.repo.find();
+		return this.repo.find({ relations: ['conversacion', 'emisor'] });
 	}
 
 	findOne(id: number) {
-		return this.repo.findOne({ where: { id_detalle_mensajes: id } });
+		return this.repo.findOne({ where: { id_detalle_mensajes: id }, relations: ['conversacion', 'emisor'] });
 	}
 
 	async update(id: number, updateDto: UpdateDetalleMensajesInput) {

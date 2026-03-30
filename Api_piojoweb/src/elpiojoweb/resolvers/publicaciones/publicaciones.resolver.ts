@@ -2,6 +2,7 @@ import { Resolver, Query, Args, Int, Mutation } from '@nestjs/graphql';
 import { PublicacionesService } from '../../services/publicaciones/publicaciones.service';
 import { PublicacionesType } from '../../dto/publicaciones/publicaciones.type';
 import { CreatePublicacionesInput } from '../../dto/publicaciones/create-publicaciones.input';
+import { UpdatePublicacionesInput } from '../../dto/publicaciones/update-publicaciones.input';
 import { DetallePublicacionesService } from '../../services/detalle_publicaciones/detalle_publicaciones.service';
 import { CreateDetallePublicacionesInput } from '../../dto/detalle_publicaciones/create-detalle_publicaciones.input';
 
@@ -125,6 +126,20 @@ export class PublicacionesResolver {
     }
 
     return `Asignadas ${assignments.length} fotos huérfanas a publicaciones.`;
+  }
+
+  @Mutation(() => PublicacionesType, { name: 'updatePublicacion' })
+  async update(
+    @Args('id', { type: () => Int }) id: number,
+    @Args('input') input: UpdatePublicacionesInput,
+  ) {
+    await this.publicacionesService.update(id, input as any);
+    return this.publicacionesService.findOne(id).then((r: any) => r ? ({
+      ...r,
+      id_usuarios: r.usuario ? (r.usuario.id_usuarios ?? r.usuario.id) : undefined,
+      id_puntos_entrega: r.punto_entrega ? (r.punto_entrega.id_puntos_entrega ?? r.punto_entrega.id) : undefined,
+      detallePublicaciones: (r.fotos || []).map((f: any) => ({ url_foto: f.url_foto, es_portada: !!f.es_portada })),
+    }) : null);
   }
 
   @Mutation(() => Boolean, { name: 'removePublicacion' })

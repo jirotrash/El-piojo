@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Mail, GraduationCap, MapPin, Edit2, Package, ShoppingBag, Heart, Settings, LogOut } from "lucide-react";
+import { ArrowLeft, Mail, GraduationCap, MapPin, Edit2, Package, ShoppingBag, Heart, Settings, LogOut, Star, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/ThemeProvider";
 import { Sun, Moon } from "lucide-react";
@@ -10,6 +10,7 @@ import useUsuarioApi from "./Dashboard/hooks/useUsuarioApi";
 import useUsuarioMutations from "./Dashboard/hooks/useUsuarioMutations";
 import { toast } from "@/hooks/use-toast";
 import usePublicacionesApi from "./Dashboard/hooks/usePublicacionesApi";
+import useHistorialTratosApi from "./Dashboard/hooks/useHistorialTratosApi";
 import { useAuth } from "@/components/AuthProvider";
 
 const statusColor: Record<string, string> = {
@@ -24,7 +25,8 @@ const Profile = () => {
 
   const { data: usuariosData = [], loading: usuariosLoading, refetch: refetchUsuarios } = useUsuarioApi();
   const { data: publicacionesData = [], loading: publicacionesLoading } = usePublicacionesApi();
-  const { token, logout } = useAuth();
+  const { data: historialData = [], refetch: refetchHistorial } = useHistorialTratosApi();
+  const { token, user: authUser, logout } = useAuth();
   const navigate = useNavigate();
   // Derive user identity from token.
   // Supports two token shapes:
@@ -57,9 +59,10 @@ const Profile = () => {
     }
   }
 
-  // Determine current user: prefer match by email, otherwise first user, otherwise null
+  // Determine current user: prefer authUser, then token match; do NOT fallback to first user
   const currentUser = (() => {
     if (usuariosLoading) return null;
+    if (authUser) return authUser;
     // Prefer exact id match from token.sub if available
     if (tokenSub) {
       const byId = usuariosData.find((u: any) => String(u.id_usuarios ?? u.id) === String(tokenSub));
@@ -69,7 +72,7 @@ const Profile = () => {
       const byEmail = usuariosData.find((u: any) => (u.email || '').toLowerCase() === tokenEmail?.toLowerCase());
       if (byEmail) return byEmail;
     }
-    return usuariosData.length ? usuariosData[0] : null;
+    return null;
   })();
 
   // Edit mode state
@@ -170,6 +173,48 @@ const Profile = () => {
   };
 
   const userProducts = publicacionesData.filter((p: any) => currentUser ? Number(p.id_usuarios) === Number(currentUser.id_usuarios ?? currentUser.id) : false);
+  // Purchases stored in localStorage by ProductDetail after a successful buy
+  const [purchasedItems, setPurchasedItems] = useState<any[]>([]);
+  useEffect(() => {
+    if (!currentUser) return;
+    const userId = Number(currentUser.id_usuarios ?? currentUser.id);
+    try {
+      const raw = localStorage.getItem(`purchases_${userId}`);
+      setPurchasedItems(raw ? JSON.parse(raw) : []);
+    } catch (_) { setPurchasedItems([]); }
+  }, [currentUser]);
+
+  // Local historial (fallback when backend mutation is not available)
+  const [localHistorial, setLocalHistorial] = useState<any[]>([]);
+  const [showFinalModal, setShowFinalModal] = useState(false);
+  const [finalForm, setFinalForm] = useState<{ calificacion: number; comentario: string; titulo_producto: string }>({ calificacion: 5, comentario: '', titulo_producto: '' });
+  const [starHover, setStarHover] = useState(0);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('local_historial_tratos');
+      if (raw) setLocalHistorial(JSON.parse(raw));
+    } catch (e) {
+      setLocalHistorial([]);
+    }
+  }, []);
+
+  const saveFinalizacionLocal = async () => {
+    const item = {
+      id_historial_tratos: `local_${Date.now()}`,
+      fecha_cierre: new Date().toISOString(),
+      calificacion: finalForm.calificacion,
+      comentario: finalForm.comentario,
+      titulo_producto: finalForm.titulo_producto,
+    };
+    const next = [item, ...localHistorial];
+    try {
+      localStorage.setItem('local_historial_tratos', JSON.stringify(next));
+    } catch (e) {}
+    setLocalHistorial(next);
+    setShowFinalModal(false);
+    try { await refetchHistorial(); } catch {}
+  };
   
   function formatDate(value: any) {
     if (!value) return '—';
@@ -333,6 +378,62 @@ const Profile = () => {
           </div>
         </motion.div>
 
+        {/* Finalizaciones (historial de tratos) */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-card rounded-3xl border border-border overflow-hidden shadow-sm">
+          {/* Section header */}
+          <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-transparent px-5 py-4 border-b border-border flex items-center justify-between gap-3">
+            <div>
+              <h3 className="font-display font-bold text-base text-foreground flex items-center gap-2">
+                <CheckCircle2 size={17} className="text-primary" /> Pedidos Finalizados
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">Historial de tratos y calificaciones</p>
+            </div>
+            <button
+              onClick={() => { setFinalForm({ calificacion: 5, comentario: '', titulo_producto: '' }); setStarHover(0); setShowFinalModal(true); }}
+              className="flex items-center gap-1.5 bg-primary text-primary-foreground text-xs font-semibold px-3 py-2 rounded-xl hover:opacity-90 transition-opacity shadow-sm shrink-0"
+            >
+              <Star size={13} /> Calificar pedido
+            </button>
+          </div>
+
+          <div className="p-4 space-y-3">
+            {((historialData || []).concat(localHistorial || [])).length === 0 ? (
+              <div className="flex flex-col items-center py-8 gap-2 text-muted-foreground">
+                <CheckCircle2 size={40} className="opacity-15" />
+                <p className="text-sm">Aún no hay pedidos finalizados</p>
+                <p className="text-xs opacity-60">Cuando completes una venta, aparecerá aquí</p>
+              </div>
+            ) : (
+              (historialData || []).concat(localHistorial || []).slice(0, 8).map((h: any, idx: number) => {
+                const stars = Number(h.calificacion ?? 0);
+                const starColor = stars >= 4 ? 'text-emerald-400' : stars === 3 ? 'text-amber-400' : 'text-red-400';
+                const bgBorder = stars >= 4 ? 'border-emerald-500/20 bg-emerald-500/5' : stars === 3 ? 'border-amber-500/20 bg-amber-500/5' : stars > 0 ? 'border-red-500/20 bg-red-500/5' : 'border-border bg-muted/30';
+                return (
+                  <div key={h.id_historial_tratos ?? `local_${idx}`} className={`rounded-2xl border ${bgBorder} p-4 transition-shadow hover:shadow-sm`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        {h.titulo_producto && (
+                          <div className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1">
+                            <Package size={11} className="opacity-60" /> {h.titulo_producto}
+                          </div>
+                        )}
+                        <div className="flex items-center gap-0.5 mb-2">
+                          {[1,2,3,4,5].map(n => (
+                            <Star key={n} size={15} className={n <= stars ? `${starColor} fill-current` : 'text-muted-foreground/25'} />
+                          ))}
+                          <span className="ml-2 text-xs text-muted-foreground font-semibold">{stars}/5</span>
+                        </div>
+                        {h.comentario && <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{h.comentario}</p>}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground whitespace-nowrap shrink-0 bg-muted px-2 py-0.5 rounded-full">{formatDate(h.fecha_cierre)}</div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </motion.div>
+
         {/* Botón publicar */}
         <div className="mt-4">
           <Link to="/vender">
@@ -359,7 +460,7 @@ const Profile = () => {
 
         {/* Products grid */}
         <motion.div layout className="grid grid-cols-2 gap-3">
-          {(activeTab === "published" ? userProducts : userProducts.filter((p: any) => !p.disponible)).map((product: any, i: number) => {
+          {activeTab === "published" ? userProducts.map((product: any, i: number) => {
             const status = product.disponible ? "Disponible" : "Vendido";
             const price = product.precio ?? product.price ?? 0;
             const title = product.titulo ?? product.name ?? "Sin título";
@@ -379,7 +480,7 @@ const Profile = () => {
                 transition={{ delay: i * 0.05 }}
                 className="bg-card rounded-2xl border border-border overflow-hidden hover:shadow-md transition-shadow"
               >
-                <div className={`h-28 bg-gradient-to-br ${gradient} flex items-center justify-center text-4xl` }>
+                <div className={`h-28 bg-gradient-to-br ${gradient} flex items-center justify-center text-4xl`}>
                   {fotoSrc ? (
                     <img src={fotoSrc} alt={title} className="w-full h-full object-cover" />
                   ) : (
@@ -394,6 +495,43 @@ const Profile = () => {
                       {status}
                     </span>
                   </div>
+                </div>
+              </motion.div>
+            );
+          }) : purchasedItems.length === 0 ? (
+            <div className="col-span-2 flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">
+              <ShoppingBag size={40} className="opacity-30" />
+              <p className="font-body text-sm">Aún no has comprado nada</p>
+            </div>
+          ) : purchasedItems.map((purchase: any, i: number) => {
+            const title = purchase.titulo || 'Producto';
+            const price = purchase.precio ?? 0;
+            const fecha = purchase.fecha ? new Date(purchase.fecha).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+            const fotoSrc = purchase.foto ? normalizeFotoPerfil(purchase.foto) : null;
+            return (
+              <motion.div
+                key={`purchase_${purchase.id_publicaciones}_${i}`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="bg-card rounded-2xl border border-border overflow-hidden hover:shadow-md transition-shadow"
+              >
+                <div className="h-28 bg-gradient-to-br from-violet-400/10 to-blue-600/10 flex items-center justify-center text-4xl">
+                  {fotoSrc ? (
+                    <img src={fotoSrc} alt={title} className="w-full h-full object-cover" />
+                  ) : (
+                    '🛍️'
+                  )}
+                </div>
+                <div className="p-3">
+                  <p className="font-body text-sm font-semibold text-foreground truncate">{title}</p>
+                  <div className="flex items-center justify-between mt-1.5">
+                    <span className="font-display font-bold text-primary text-sm">${price}</span>
+                    <span className="text-[10px] font-body font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
+                      Comprado
+                    </span>
+                  </div>
+                  {fecha ? <p className="text-[10px] text-muted-foreground mt-1 font-body">{fecha}</p> : null}
                 </div>
               </motion.div>
             );
@@ -441,6 +579,105 @@ const Profile = () => {
               <button onClick={() => setShowAccountModal(false)} className="px-3 py-2 bg-muted text-foreground rounded-lg">Cancelar</button>
             </div>
           </div>
+        </div>
+      ) : null}
+      {showFinalModal ? (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={() => setShowFinalModal(false)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <motion.div
+            initial={{ y: 60, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+            onClick={e => e.stopPropagation()}
+            className="relative w-full sm:max-w-md bg-card rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-2xl border border-border"
+          >
+            {/* Gradient header con estrellas */}
+            <div className="bg-gradient-to-br from-primary via-primary/85 to-accent/60 px-6 pt-6 pb-12 text-primary-foreground">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="font-display font-bold text-xl">Calificar pedido</h2>
+                  <p className="text-primary-foreground/70 text-sm mt-0.5">¿Cómo resultó la transacción?</p>
+                </div>
+                <button
+                  onClick={() => setShowFinalModal(false)}
+                  className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition text-sm font-bold"
+                >✕</button>
+              </div>
+
+              {/* Picker de estrellas grande */}
+              <div className="flex items-center justify-center gap-3 mt-6">
+                {[1,2,3,4,5].map(n => (
+                  <button
+                    key={n}
+                    onMouseEnter={() => setStarHover(n)}
+                    onMouseLeave={() => setStarHover(0)}
+                    onClick={() => setFinalForm(p => ({ ...p, calificacion: n }))}
+                    className="transition-transform hover:scale-125 active:scale-110 focus:outline-none"
+                  >
+                    <Star
+                      size={38}
+                      className={`transition-all duration-150 ${
+                        n <= (starHover || finalForm.calificacion)
+                          ? 'text-amber-300 fill-amber-300 drop-shadow-[0_0_8px_rgba(252,211,77,0.6)]'
+                          : 'text-white/25'
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+              <p className="text-center text-primary-foreground/80 text-sm mt-2 h-5">
+                {['', 'Muy malo 😞', 'Malo 😕', 'Regular 😐', 'Bueno 😊', '¡Excelente! 🤩'][starHover || finalForm.calificacion]}
+              </p>
+            </div>
+
+            {/* Cuerpo que sube sobre el header */}
+            <div className="px-6 py-5 -mt-6 bg-card rounded-t-3xl relative space-y-4">
+              {/* Selector de producto */}
+              {userProducts.length > 0 && (
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Producto</label>
+                  <select
+                    value={finalForm.titulo_producto}
+                    onChange={e => setFinalForm(p => ({ ...p, titulo_producto: e.target.value }))}
+                    className="w-full mt-1.5 px-3 py-2.5 rounded-xl bg-muted border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  >
+                    <option value="">Selecciona un producto…</option>
+                    {userProducts.map((p: any) => (
+                      <option key={p.id_publicaciones ?? p.id} value={p.titulo ?? p.name}>{p.titulo ?? p.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Comentario */}
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Comentario</label>
+                <textarea
+                  value={finalForm.comentario}
+                  onChange={e => setFinalForm(p => ({ ...p, comentario: e.target.value }))}
+                  placeholder="Describe cómo fue la transacción…"
+                  maxLength={300}
+                  rows={3}
+                  className="w-full mt-1.5 px-3 py-2.5 rounded-xl bg-muted border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
+                />
+                <div className="text-right text-[10px] text-muted-foreground mt-0.5">{finalForm.comentario.length}/300</div>
+              </div>
+
+              {/* Acciones */}
+              <div className="flex gap-2 pb-1">
+                <button
+                  onClick={() => setShowFinalModal(false)}
+                  className="flex-1 py-2.5 rounded-xl bg-muted text-foreground text-sm font-semibold hover:bg-muted/70 transition-colors"
+                >Cancelar</button>
+                <button
+                  onClick={saveFinalizacionLocal}
+                  className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-opacity shadow-md flex items-center justify-center gap-1.5"
+                >
+                  <CheckCircle2 size={15} /> Guardar calificación
+                </button>
+              </div>
+            </div>
+          </motion.div>
         </div>
       ) : null}
     </div>

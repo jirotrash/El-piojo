@@ -1,11 +1,12 @@
 import React from 'react';
+import { RequireAuth } from './AuthProvider';
 
 /**
- * RequireAdmin desactivado: permite siempre acceso al dashboard.
- * Para restaurar la comprobación de admin revierte este archivo o reintroduce la lógica necesaria.
+ * RequireAdmin: protege las rutas del dashboard forzando inicio de sesión.
+ * Actualmente sólo comprueba autenticación; validar rol requiere llamada al backend.
  */
-export const RequireAdmin = ({ children }: { children: JSX.Element; redirectTo?: string }) => {
-  return children;
+export const RequireAdmin = ({ children, redirectTo = '/dashboard/login' }: { children: JSX.Element; redirectTo?: string }) => {
+  return <RequireAuth redirectTo={redirectTo}>{children}</RequireAuth>;
 };
 
 export default RequireAdmin;

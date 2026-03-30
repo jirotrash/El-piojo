@@ -12,9 +12,13 @@ export class PagosService {
 		private readonly repo: Repository<Pagos>,
 	) {}
 
-	create(createDto: CreatePagosInput) {
+	async create(createDto: CreatePagosInput) {
 		const ent = this.repo.create(createDto as any);
-		return this.repo.save(ent);
+		if (createDto.id_usuarios_pagador) {
+			(ent as any).pagador = { id_usuarios: createDto.id_usuarios_pagador };
+		}
+		const saved = await this.repo.save(ent) as any;
+		return this.repo.findOne({ where: { id_pagos: saved.id_pagos }, relations: ['pagador'] });
 	}
 
 	findAll() {

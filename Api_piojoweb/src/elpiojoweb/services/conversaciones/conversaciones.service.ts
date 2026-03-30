@@ -18,11 +18,11 @@ export class ConversacionesService {
 	}
 
 	findAll() {
-		return this.repo.find();
+		return this.repo.find({ relations: ['vendedor', 'comprador', 'publicacion'] });
 	}
 
 	findOne(id: number) {
-		return this.repo.findOne({ where: { id_conversaciones: id } });
+		return this.repo.findOne({ where: { id_conversaciones: id }, relations: ['vendedor', 'comprador', 'publicacion'] });
 	}
 
 	async update(id: number, updateDto: UpdateConversacionesInput) {

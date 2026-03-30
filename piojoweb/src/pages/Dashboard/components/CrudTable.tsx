@@ -179,17 +179,28 @@ export function CrudTable<T extends object>({
             </SelectContent>
           </Select>
         ) : (
-          <Input
-            className="w-full"
-            type={col.type === "number" ? "number" : col.type === "date" ? "datetime-local" : "text"}
-            value={String(formData[col.key] ?? "")}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                [col.key]: col.type === "number" ? (e.target.value === '' ? '' : Number(e.target.value)) : e.target.value,
-              })
-            }
-          />
+          (() => {
+            const inputType = col.key === 'password'
+              ? 'password'
+              : col.type === "number"
+              ? "number"
+              : col.type === "date"
+              ? "datetime-local"
+              : "text";
+            return (
+              <Input
+                className="w-full"
+                type={inputType}
+                value={String(formData[col.key] ?? "")}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    [col.key]: col.type === "number" ? (e.target.value === '' ? '' : Number(e.target.value)) : e.target.value,
+                  })
+                }
+              />
+            );
+          })()
         )}
       </div>
     );
@@ -227,7 +238,8 @@ export function CrudTable<T extends object>({
         const arr = Array.isArray(raw) ? raw as any[] : [];
         vals[col.key] = arr.map((d) => ({ url: d?.url_foto ?? d?.url ?? d, es_portada: d?.es_portada ?? false }));
       } else {
-        vals[col.key] = raw;
+        // Do not prefill the password field when editing a user
+        vals[col.key] = col.key === 'password' ? '' : raw;
       }
     });
     setFormData(vals);
@@ -269,6 +281,14 @@ export function CrudTable<T extends object>({
           // ensure at least one portada
           if (urls.length > 0 && !urls.some(u => u.es_portada)) urls[0].es_portada = true;
           payload[col.key] = urls.map(u => ({ url_foto: u.url, es_portada: u.es_portada }));
+        }
+      }
+
+      // Do not send empty password values (avoid overwriting existing hashed password)
+      if (Object.prototype.hasOwnProperty.call(payload, 'password')) {
+        const p = payload.password;
+        if (p === '' || p === null || p === undefined) {
+          delete payload.password;
         }
       }
 

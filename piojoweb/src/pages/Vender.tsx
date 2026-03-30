@@ -56,8 +56,8 @@ export default function Vender() {
   // Upload endpoint (required). If empty, form will refuse to submit.
   const UPLOAD_URL = import.meta.env.VITE_UPLOAD_URL ?? '';
 
-  // derive current user from token + usuarios list (like Navbar)
-  const { token } = useAuth();
+  // derive current user from AuthProvider or token + usuarios list
+  const { token, user: authUser } = useAuth();
   const { data: usuariosData = [] } = useUsuarioApi();
   const { data: puntosData = [] } = usePuntosEntregaApi();
   const tokenSub = useMemo(() => {
@@ -82,13 +82,14 @@ export default function Vender() {
   }, [token]);
 
   const currentUser = useMemo(() => {
+    if (authUser) return authUser;
     if (!usuariosData || usuariosData.length === 0) return null;
     if (tokenSub) {
       const byId = usuariosData.find((u: any) => String(u.id_usuarios ?? u.id) === String(tokenSub));
       if (byId) return byId;
     }
-    return usuariosData[0] || null;
-  }, [usuariosData, tokenSub]);
+    return null;
+  }, [usuariosData, tokenSub, authUser]);
 
   // 3. MANEJO DE LA IMAGEN (REQ 11)
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, slot = 0) => {

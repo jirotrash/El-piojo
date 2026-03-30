@@ -1,4 +1,4 @@
-import { InputType, Field, Int, Float } from '@nestjs/graphql';
+import { InputType, Field, Int, Float, registerEnumType } from '@nestjs/graphql';
 import { IsInt, IsNotEmpty, IsOptional, IsNumber, IsEnum, IsString } from 'class-validator';
 
 export enum MetodoPagoEnum {
@@ -11,6 +11,9 @@ export enum EstadoPagoEnum {
 	COMPLETADO = 'COMPLETADO',
 	RECHAZADO = 'RECHAZADO',
 }
+
+registerEnumType(MetodoPagoEnum, { name: 'MetodoPagoEnum' });
+registerEnumType(EstadoPagoEnum, { name: 'EstadoPagoEnum' });
 
 @InputType()
 export class CreatePagosInput {

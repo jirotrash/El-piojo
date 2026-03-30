@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/ThemeProvider";
 import { Sun, Moon } from "lucide-react";
 import usePublicacionesApi from "./Dashboard/hooks/usePublicacionesApi";
+import { PRODUCTOS } from "@/data/products";
 
 type Item = {
   id: number;
@@ -18,6 +19,7 @@ type Item = {
   gender: "Hombre" | "Mujer" | "Unisex";
   category: string;
   emoji: string;
+  image?: string | null;
 };
 
 // We'll map publicaciones from backend into Item shape below
@@ -51,13 +53,14 @@ const Catalog = () => {
   };
 
   // Map backend publicaciones into the UI item shape
-  const mappedItems: Item[] = publicacionesData.map((p: any) => {
+  const emojiByCat: Record<string,string> = {
+    Chamarras: '🧥', Hoodies: '👕', Playeras: '👕', Calzado: '👟', Faldas: '👗', Camisas: '👔', Pantalones: '👖', Vestidos: '👗', Blusas: '👚', Shorts: '🩳'
+  };
+
+  const mapPublicacionToItem = (p: any): Item => {
     const priceRaw = p.precio ?? null;
     const price = priceRaw === null || priceRaw === 0 || priceRaw === '0' ? 'Gratis' : String(priceRaw).startsWith('$') ? String(priceRaw) : `$${String(priceRaw)}`;
     const tag = (price === 'Gratis' || !priceRaw) ? 'Donación' : 'Venta';
-    const emojiByCat: Record<string,string> = {
-      Chamarras: '🧥', Hoodies: '👕', Playeras: '👕', Calzado: '👟', Faldas: '👗', Camisas: '👔', Pantalones: '👖', Vestidos: '👗', Blusas: '👚', Shorts: '🩳'
-    };
     return {
       id: Number(p.id_publicaciones ?? p.id),
       name: p.titulo ?? p.descripcion ?? 'Sin título',
@@ -68,8 +71,49 @@ const Catalog = () => {
       gender: p.genero ?? 'Unisex',
       category: p.categoria ?? 'Varios',
       emoji: emojiByCat[p.categoria] ?? '🧺',
+      image: (() => {
+        const detalles = p.detallePublicaciones || p.detalle_publicaciones || [];
+        if (!Array.isArray(detalles) || detalles.length === 0) return null;
+        const portada = detalles.find((d: any) => d?.es_portada) || detalles[0];
+        let url: string | null = portada?.url_foto ?? null;
+        if (!url) return null;
+        try {
+          const isAbsolute = /^https?:\/\//i.test(url) || url.startsWith('data:') || url.startsWith('blob:');
+          if (!isAbsolute && url.startsWith('/')) {
+            const GRAPHQL = (import.meta.env.VITE_GRAPHQL_URL as string) ?? '/graphql';
+            if (/^https?:\/\//i.test(GRAPHQL)) {
+              const base = GRAPHQL.replace(/\/graphql\/?$/, '');
+              url = base + url;
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
+        return url;
+      })(),
     } as Item;
-  });
+  };
+
+  const mapProductoLocalToItem = (p: any): Item => {
+    const price = p.precio == null || p.precio === 0 ? 'Gratis' : `$${String(p.precio)}`;
+    const tag = p.precio == null || p.precio === 0 ? 'Donación' : 'Venta';
+    return {
+      id: Number(p.id ?? p.id_publicaciones ?? 0),
+      name: p.titulo ?? p.name ?? 'Sin título',
+      price,
+      condition: p.condicion ?? p.condition ?? '',
+      tag: tag as 'Venta' | 'Donación',
+      size: p.talla ?? p.size ?? '',
+      gender: p.genero ?? p.gender ?? 'Unisex',
+      category: p.categoria ?? p.category ?? 'Varios',
+      emoji: emojiByCat[p.categoria] ?? '🧺',
+      image: Array.isArray(p.imagenes) && p.imagenes.length > 0 ? p.imagenes[0] : null,
+    } as Item;
+  };
+
+  const mappedItems: Item[] = (publicacionesData && publicacionesData.length > 0)
+    ? publicacionesData.map(mapPublicacionToItem)
+    : PRODUCTOS.map(mapProductoLocalToItem);
 
   const filtered = useMemo(() => {
     return mappedItems.filter((item) => {
@@ -182,38 +226,49 @@ const Catalog = () => {
               return (
                 <motion.div
                   key={item.id}
-                  className="bg-card rounded-2xl shadow-card hover:shadow-card-hover transition-all hover:-translate-y-1 cursor-pointer overflow-hidden"
+                  className="rounded-2xl overflow-hidden shadow-card transition-transform hover:-translate-y-1"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.03 }}
                 >
-                  {/* Image preview */}
-                  <div className={`bg-gradient-to-br ${gradient} h-40 flex items-center justify-center`}>
-                    <span className="text-6xl">{item.emoji}</span>
+                  {/* Large image */}
+                  <div className="w-full h-64 md:h-80 bg-muted overflow-hidden">
+                    {item.image ? (
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+                    ) : (
+                      <div className={`bg-gradient-to-br ${gradient} w-full h-full flex items-center justify-center`}>
+                        <span className="text-6xl">{item.emoji}</span>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="p-4">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <h3 className="font-display font-bold text-foreground truncate">{item.name}</h3>
-                        <p className="text-muted-foreground text-sm font-body mt-1">Estado: {item.condition}</p>
+                  {/* Info panel (dark theme) */}
+                  <div className="bg-card p-4 text-foreground">
+                    <div className="flex items-start justify-between">
+                      <div className="min-w-0 pr-2">
+                        <h3 className="text-sm font-display font-bold text-foreground truncate">{item.name}</h3>
+                        {item.condition && <p className="text-xs text-muted-foreground mt-1">Estado: {item.condition}</p>}
                       </div>
-                      <span className={`text-xs font-display font-bold px-3 py-1 rounded-full shrink-0 ${item.tag === "Donación" ? "bg-gradient-donate text-primary-foreground" : "bg-gradient-hero text-primary-foreground"}`}>
+                      <span className={`text-xs font-semibold px-3 py-1 rounded-full shrink-0 ${item.tag === "Donación" ? "bg-gradient-donate text-primary-foreground" : "bg-gradient-hero text-primary-foreground"}`}>
                         {item.tag}
                       </span>
                     </div>
 
-                    <div className="mt-3 flex items-center gap-2">
-                      <span className="text-xs font-body font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{item.size}</span>
-                      <span className="text-xs font-body font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{item.gender}</span>
-                      <span className="text-xs font-body font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{item.category}</span>
+                    <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+                      <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{item.size}</span>
+                      <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{item.gender}</span>
+                      <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{item.category}</span>
                     </div>
 
-                    <div className="mt-3 flex items-center justify-between">
-                      <span className="font-display font-bold text-xl text-primary">{item.price}</span>
-                      <Link to={`/producto/${item.id}`} className="font-body font-semibold text-sm text-primary hover:underline">
-                        Me interesa →
-                      </Link>
+                    <div className="mt-4 flex items-center justify-between">
+                      <div>
+                        {String(item.price).toLowerCase() === 'gratis' ? (
+                          <div className="text-xl font-display font-bold text-primary">Gratis</div>
+                        ) : (
+                          <div className="text-xl font-display font-bold text-primary">{item.price}</div>
+                        )}
+                      </div>
+                      <Link to={`/producto/${item.id}`} className="font-body font-semibold text-sm text-primary hover:underline">Obtener más info →</Link>
                     </div>
                   </div>
                 </motion.div>

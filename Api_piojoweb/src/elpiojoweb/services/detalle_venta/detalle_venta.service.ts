@@ -12,9 +12,16 @@ export class DetalleVentaService {
 		private readonly repo: Repository<DetalleVenta>,
 	) {}
 
-	create(createDto: CreateDetalleVentaInput) {
+	async create(createDto: CreateDetalleVentaInput) {
 		const ent = this.repo.create(createDto as any);
-		return this.repo.save(ent);
+		if (createDto.id_pagos) {
+			(ent as any).pago = { id_pagos: createDto.id_pagos };
+		}
+		if (createDto.id_publicaciones) {
+			(ent as any).publicacion = { id_publicaciones: createDto.id_publicaciones };
+		}
+		const saved = await this.repo.save(ent) as any;
+		return this.repo.findOne({ where: { id_detalle_venta: saved.id_detalle_venta }, relations: ['pago', 'publicacion'] });
 	}
 
 	findAll() {
