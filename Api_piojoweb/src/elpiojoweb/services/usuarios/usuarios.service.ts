@@ -93,7 +93,20 @@ export class UsuariosService {
 	}
 
 	async findByEmail(email: string) {
-		return this.repo.findOne({ where: { email } });
+		return this.repo.findOne({
+			where: { email },
+			select: {
+				id_usuarios: true,
+				email: true,
+				password: true,
+				nombre: true,
+				apellido_paterno: true,
+				apellido_materno: true,
+				foto_perfil: true,
+				telefono: true,
+				matricula: true,
+			},
+		});
 	}
 
 	async update(id: number, updateDto: UpdateUsuariosInput) {

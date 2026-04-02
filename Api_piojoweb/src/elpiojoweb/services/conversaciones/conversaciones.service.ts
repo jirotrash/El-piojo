@@ -12,9 +12,15 @@ export class ConversacionesService {
 		private readonly repo: Repository<Conversaciones>,
 	) {}
 
-	create(createDto: CreateConversacionesInput) {
-		const ent = this.repo.create(createDto as any);
-		return this.repo.save(ent);
+	async create(createDto: CreateConversacionesInput) {
+		const ent = this.repo.create({
+			vendedor: { id_usuarios: createDto.id_vendedor } as any,
+			comprador: { id_usuarios: createDto.id_comprador } as any,
+			publicacion: { id_publicaciones: createDto.id_publicaciones } as any,
+		});
+		const saved = await this.repo.save(ent);
+		// Recarga con relaciones para que GraphQL resuelva vendedor/comprador/publicacion/fecha_creacion
+		return this.findOne(saved.id_conversaciones);
 	}
 
 	findAll() {

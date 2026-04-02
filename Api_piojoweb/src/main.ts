@@ -7,6 +7,9 @@ import { join } from 'path';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule as any);
 
+  // Allow requests from the mobile app (Expo)
+  app.enableCors({ origin: '*' });
+
   // Increase request body size limit to allow larger base64 images.
   // Adjust as needed (e.g., '5mb', '10mb').
   app.use(bodyParser.json({ limit: '10mb' }));

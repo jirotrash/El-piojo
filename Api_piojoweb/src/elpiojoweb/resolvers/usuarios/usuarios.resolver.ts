@@ -32,12 +32,12 @@ export class UsuariosResolver {
   async login(@Args('email') email: string, @Args('password') password: string) {
     const user = await this.usuariosService.findByEmail(email);
     if (!user) {
-      throw new Error('Credenciales inválidas');
+      throw new Error('Credenciales inválidas (usuario no encontrado)');
     }
 
     const valid = await bcrypt.compare(password, user.password || '');
     if (!valid) {
-      throw new Error('Credenciales inválidas');
+      throw new Error('Credenciales inválidas (contraseña incorrecta)');
     }
 
     const secret = process.env.JWT_SECRET || 'dev-secret-change-me';
