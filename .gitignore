@@ -1,0 +1,25 @@
+# Dependencias
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Variables de entorno (¡Muy importante para que no te roben contraseñas o claves de bases de datos!)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Archivos de construcción (Lo que se genera al compilar React, NestJS, etc.)
+dist/
+build/
+out/
+
+# Archivos del sistema operativo (Archivos basura que crean Windows o Mac)
+.DS_Store
+Thumbs.db
+
+# Logs de errores
+logs
+*.log
+npm-debug.log*
