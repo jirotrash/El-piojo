@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/ThemeProvider";
 import { Sun, Moon } from "lucide-react";
 import usePublicacionesApi from "./Dashboard/hooks/usePublicacionesApi";
-import { PRODUCTOS } from "@/data/products";
+import normalizeImageUrl from '@/lib/normalizeImageUrl';
 
 type Item = {
   id: number;
@@ -75,21 +75,7 @@ const Catalog = () => {
         const detalles = p.detallePublicaciones || p.detalle_publicaciones || [];
         if (!Array.isArray(detalles) || detalles.length === 0) return null;
         const portada = detalles.find((d: any) => d?.es_portada) || detalles[0];
-        let url: string | null = portada?.url_foto ?? null;
-        if (!url) return null;
-        try {
-          const isAbsolute = /^https?:\/\//i.test(url) || url.startsWith('data:') || url.startsWith('blob:');
-          if (!isAbsolute && url.startsWith('/')) {
-            const GRAPHQL = (import.meta.env.VITE_GRAPHQL_URL as string) ?? '/graphql';
-            if (/^https?:\/\//i.test(GRAPHQL)) {
-              const base = GRAPHQL.replace(/\/graphql\/?$/, '');
-              url = base + url;
-            }
-          }
-        } catch (e) {
-          // ignore
-        }
-        return url;
+        return normalizeImageUrl(portada?.url_foto ?? portada?.url ?? null);
       })(),
     } as Item;
   };
@@ -113,7 +99,7 @@ const Catalog = () => {
 
   const mappedItems: Item[] = (publicacionesData && publicacionesData.length > 0)
     ? publicacionesData.map(mapPublicacionToItem)
-    : PRODUCTOS.map(mapProductoLocalToItem);
+    : [];
 
   const filtered = useMemo(() => {
     return mappedItems.filter((item) => {

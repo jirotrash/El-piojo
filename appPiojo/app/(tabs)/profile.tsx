@@ -23,7 +23,7 @@ import type { Product } from '../../src/interfaces';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
   const colors = useColors();
   const styles = makeStyles(colors);
 
@@ -40,24 +40,6 @@ export default function ProfileScreen() {
         .finally(() => setLoadingPubs(false));
     }, [user?.id]),
   );
-
-  const handleLogout = () => {
-    Alert.alert(
-      'Cerrar Sesión',
-      '¿Estás seguro de que quieres salir?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Salir',
-          style: 'destructive',
-          onPress: () => {
-            logout();
-            router.replace('/');
-          },
-        },
-      ]
-    );
-  };
 
   const handleMarcarVendida = (product: Product) => {
     Alert.alert(
@@ -110,7 +92,7 @@ export default function ProfileScreen() {
         <View style={styles.userCard}>
           <View style={styles.avatar}>
             {user?.foto_perfil ? (
-              <Image source={{ uri: user.foto_perfil }} style={styles.avatarImage} />
+              <Image source={{ uri: user.foto_perfil.replace(/^http:\/\//i, 'https://') }} style={styles.avatarImage} />
             ) : (
               <Text style={styles.avatarText}>
                 {user?.name?.split(' ').map(n => n[0]).slice(0, 2).join('') || 'U'}
@@ -247,18 +229,6 @@ export default function ProfileScreen() {
             </View>
           )}
         </View>
-
-        {/* Logout Button */}
-        <Pressable
-          style={({ pressed }) => [
-            styles.logoutButton,
-            pressed && styles.logoutButtonPressed,
-          ]}
-          onPress={handleLogout}
-        >
-          <Ionicons name="log-out" size={22} color={colors.error} />
-          <Text style={styles.logoutText}>Cerrar Sesión</Text>
-        </Pressable>
 
         {/* App Info */}
         <View style={styles.appInfo}>
@@ -420,25 +390,6 @@ const makeStyles = (c: ColorPalette) => StyleSheet.create({
     flex: 1,
     color: c.textPrimary,
     fontSize: 15,
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: c.error + '15',
-    borderRadius: 14,
-    paddingVertical: 16,
-    gap: 10,
-    borderWidth: 1,
-    borderColor: c.error + '30',
-  },
-  logoutButtonPressed: {
-    opacity: 0.8,
-  },
-  logoutText: {
-    color: c.error,
-    fontSize: 16,
-    fontWeight: '600',
   },
   // ── Mis Publicaciones ─────────────────────────────────────────────────────
   pubsSection: {

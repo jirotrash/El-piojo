@@ -3,6 +3,8 @@ import { CrudTable } from "../components/CrudTable";
 import type { ColumnDef } from "../components/CrudTable";
 import type { Publicacion } from "../lib/mock-data";
 import usePublicacionesApi from "../hooks/usePublicacionesApi";
+import normalizeImageUrl from "@/lib/normalizeImageUrl";
+import piojoLogo from "@/assets/piojo-logo.png";
 import usePublicacionesMutations from "../hooks/usePublicacionesMutations";
 import useUsuarioApi from "../hooks/useUsuarioApi";
 import usePuntosEntregaApi from "../hooks/usePuntosEntregaApi";
@@ -44,7 +46,13 @@ export default function PublicacionesPage() {
       return (
         <div className="flex items-center gap-2">
           {arr.slice(0,3).map((d:any, i:number) => (
-            <img key={i} src={d?.url_foto ?? d?.url} alt={`img-${i}`} className="h-8 w-8 rounded-md object-cover" />
+            <img
+              key={i}
+              src={normalizeImageUrl(d?.url_foto ?? d?.url) ?? piojoLogo}
+              alt={`img-${i}`}
+              className="h-8 w-8 rounded-md object-cover"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = piojoLogo; }}
+            />
           ))}
           {arr.length > 3 && <span className="text-xs text-muted-foreground">+{arr.length - 3}</span>}
         </div>

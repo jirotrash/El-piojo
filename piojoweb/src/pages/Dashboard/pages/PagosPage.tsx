@@ -4,10 +4,12 @@ import type { ColumnDef } from "../components/CrudTable";
 import type { Pago } from "../lib/mock-data";
 import usePagosApi from "../hooks/usePagosApi";
 import useUsuarioApi from "../hooks/useUsuarioApi";
+import usePagosMutations from "../hooks/usePagosMutations";
 
 export default function PagosPage() {
-  const { data: pagosData = [] } = usePagosApi();
+  const { data: pagosData = [], refetch } = usePagosApi();
   const { data: usuariosData = [] } = useUsuarioApi();
+  const { createPago, updatePago, removePago } = usePagosMutations();
   const [data, setData] = useState<Pago[]>(pagosData);
   useEffect(() => { setData(pagosData); }, [pagosData]);
   // Build options for pagador if payments include an user id field
@@ -25,9 +27,24 @@ export default function PagosPage() {
 
   return (
     <CrudTable title="Pagos" data={data} columns={columns} idKey="id_pagos"
-      onAdd={(item) => setData([...data, { ...item, id_pagos: data.length + 1 } as Pago])}
-      onEdit={(item) => setData(data.map(d => d.id_pagos === item.id_pagos ? item : d))}
-      onDelete={(id) => setData(data.filter(d => d.id_pagos !== id))}
+      onAdd={async (item) => {
+        try {
+          await createPago(item as Record<string, any>);
+          await refetch();
+        } catch (err) { console.error(err); }
+      }}
+      onEdit={async (item) => {
+        try {
+          await updatePago(Number((item as any).id_pagos), item as Record<string, any>);
+          await refetch();
+        } catch (err) { console.error(err); }
+      }}
+      onDelete={async (id) => {
+        try {
+          await removePago(Number(id));
+          await refetch();
+        } catch (err) { console.error(err); }
+      }}
     />
   );
 }

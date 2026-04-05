@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,9 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  Image,
+  Animated,
+  Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -28,6 +31,36 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  // Animaciones del hero
+  const b1Y   = useRef(new Animated.Value(0)).current;
+  const b2Y   = useRef(new Animated.Value(0)).current;
+  const b3Y   = useRef(new Animated.Value(0)).current;
+  const b4Y   = useRef(new Animated.Value(0)).current;
+  const pulse = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const float = (val: Animated.Value, dist: number, dur: number) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(val, { toValue: -dist, duration: dur, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+          Animated.timing(val, { toValue: dist * 0.4, duration: dur * 0.8, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+          Animated.timing(val, { toValue: 0, duration: dur * 0.6, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        ])
+      ).start();
+
+    float(b1Y, 18, 3200);
+    float(b2Y, 14, 2700);
+    float(b3Y, 10, 3800);
+    float(b4Y, 16, 2400);
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1.06, duration: 1600, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1,    duration: 1600, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -53,19 +86,26 @@ export default function LoginScreen() {
         >
           {/* ── Hero gradient ─────────────────────────── */}
           <LinearGradient
-            colors={[colors.primary, colors.mint]}
+            colors={['#18C5B8', '#1aacde', '#0e7fb5']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.hero}
           >
-            {/* Círculos decorativos de fondo */}
-            <View style={styles.heroBubble1} />
-            <View style={styles.heroBubble2} />
+            {/* Burbujas animadas */}
+            <Animated.View style={[styles.heroBubble1, { transform: [{ translateY: b1Y }] }]} />
+            <Animated.View style={[styles.heroBubble2, { transform: [{ translateY: b2Y }] }]} />
+            <Animated.View style={[styles.heroBubble3, { transform: [{ translateY: b3Y }] }]} />
+            <Animated.View style={[styles.heroBubble4, { transform: [{ translateY: b4Y }] }]} />
 
-            <View style={styles.logoRing}>
-              <Ionicons name="shirt" size={52} color={colors.primary} />
-            </View>
-            <Text style={styles.appName}>PIOJO</Text>
+            {/* Logo con pulso */}
+            <Animated.View style={[styles.logoCircle, { transform: [{ scale: pulse }] }]}>
+              <Image
+                source={require('../assets/images/logo.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
+            </Animated.View>
+
             <Text style={styles.heroTagline}>Marketplace de Ropa Universitaria</Text>
           </LinearGradient>
 
@@ -177,50 +217,66 @@ const makeStyles = (c: ColorPalette) => StyleSheet.create({
   // ── Hero ──────────────────────────────────────
   hero: {
     alignItems: 'center',
-    paddingTop: 44,
-    paddingBottom: 64,
+    paddingTop: 48,
+    paddingBottom: 72,
     overflow: 'hidden',
   },
   heroBubble1: {
     position: 'absolute',
-    top: -40,
-    right: -40,
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: 'rgba(255,255,255,0.10)',
+    top: -50,
+    right: -50,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: 'rgba(255,255,255,0.12)',
   },
   heroBubble2: {
     position: 'absolute',
-    bottom: 10,
-    left: -30,
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    bottom: 20,
+    left: -40,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  heroBubble3: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255,255,255,0.10)',
+  },
+  heroBubble4: {
+    position: 'absolute',
+    bottom: -10,
+    right: 30,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: 'rgba(255,255,255,0.07)',
   },
-  logoRing: {
-    width: 100,
-    height: 100,
-    borderRadius: 30,
+  logoCircle: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 18,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.18,
-    shadowRadius: 14,
-    elevation: 8,
+    marginBottom: 20,
+    borderWidth: 4,
+    borderColor: 'rgba(255,255,255,0.6)',
+    shadowColor: '#0a6e99',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 14,
   },
-  appName: {
-    color: '#fff',
-    fontSize: 44,
-    fontWeight: '900',
-    letterSpacing: 9,
-    textShadowColor: 'rgba(0,0,0,0.12)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+  logoImage: {
+    width: 148,
+    height: 148,
+    borderRadius: 74,
   },
   heroTagline: {
     color: 'rgba(255,255,255,0.84)',

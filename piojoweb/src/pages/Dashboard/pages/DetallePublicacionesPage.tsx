@@ -3,6 +3,8 @@ import { CrudTable } from "../components/CrudTable";
 import type { ColumnDef } from "../components/CrudTable";
 import type { DetallePublicacion } from "../lib/mock-data";
 import useDetallePublicacionesApi from "../hooks/useDetallePublicacionesApi";
+import normalizeImageUrl from "@/lib/normalizeImageUrl";
+import piojoLogo from "@/assets/piojo-logo.png";
 import useDetallePublicacionesMutations from "../hooks/useDetallePublicacionesMutations";
 import usePublicacionesApi from "../hooks/usePublicacionesApi";
 
@@ -23,10 +25,11 @@ export default function DetallePublicacionesPage() {
       render: (val) => {
         const url = String(val ?? '');
         if (!url) return '-';
+        const norm = normalizeImageUrl(url) ?? url;
         return (
           <div className="flex items-center gap-2">
-            <a href={url} target="_blank" rel="noreferrer">
-              <img src={url} alt="foto" className="h-10 w-10 object-cover rounded-md border" />
+            <a href={norm} target="_blank" rel="noreferrer">
+              <img src={norm ?? piojoLogo} alt="foto" className="h-10 w-10 object-cover rounded-md border" onError={(e) => { (e.currentTarget as HTMLImageElement).src = piojoLogo; }} />
             </a>
           </div>
         );

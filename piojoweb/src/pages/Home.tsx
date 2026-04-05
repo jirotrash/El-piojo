@@ -7,15 +7,9 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-
-// Datos falsos
-const productosEjemplo = [
-  { id: 1, nombre: "Chamarra de Mezclilla", precio: 250, estado: "Usado", imagen: "https://placehold.co/300x200" },
-  { id: 2, nombre: "Tenis Nike Air", precio: 500, estado: "Usado", imagen: "https://placehold.co/300x200" },
-  { id: 3, nombre: "Vestido de Noche", precio: 300, estado: "Nuevo", imagen: "https://placehold.co/300x200" },
-  { id: 4, nombre: "Pantalón Cargo", precio: 180, estado: "Usado", imagen: "https://placehold.co/300x200" },
-  { id: 5, nombre: "Sudadera UTVT", precio: 150, estado: "Usado", imagen: "https://placehold.co/300x200" },
-];
+import usePublicacionesApi from "./Dashboard/hooks/usePublicacionesApi";
+import normalizeImageUrl from '@/lib/normalizeImageUrl';
+import piojoLogo from '@/assets/piojo-logo.png';
 
 export default function Home() {
   return (
@@ -77,44 +71,49 @@ export default function Home() {
         <div className="flex-1">
           <h2 className="text-2xl font-bold mb-6 text-gray-800">Catálogo Reciente</h2>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {productosEjemplo.map((prod) => (
-              <Card key={prod.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <Link to={`/producto/${prod.id}`}>
-                  <div className="h-48 overflow-hidden bg-gray-200 cursor-pointer relative">
-                    <img 
-                      src={prod.imagen} 
-                      alt={prod.nombre} 
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" 
-                    />
-                    <Badge className="absolute top-2 right-2 bg-black/70 hover:bg-black/70">
-                        {prod.estado}
-                    </Badge>
-                  </div>
-                </Link>
-
-                <CardHeader className="p-4 pb-2">
-                  <Link to={`/producto/${prod.id}`}>
-                    <CardTitle className="text-lg line-clamp-1 hover:text-blue-600 cursor-pointer">
-                      {prod.nombre}
-                    </CardTitle>
-                  </Link>
-                </CardHeader>
-                
-                <CardContent className="p-4 pt-0">
-                  <p className="text-xl font-bold text-green-600">${prod.precio}</p>
-                </CardContent>
-
-                <CardFooter className="p-4 pt-0">
-                  <Button className="w-full gap-2" variant="outline">
-                    Ver Detalles
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+          <PublicacionesList />
         </div>
       </div>
+    </div>
+  );
+}
+
+function PublicacionesList() {
+  const { data: publicaciones = [] } = usePublicacionesApi();
+  if (!publicaciones || publicaciones.length === 0) {
+    return <div className="text-sm text-muted-foreground">No hay publicaciones recientes.</div>;
+  }
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {publicaciones.slice(0, 9).map((p: any) => {
+        const portada = (p.detallePublicaciones || p.detalle_publicaciones || []).find((d: any) => d?.es_portada) || (p.detallePublicaciones || p.detalle_publicaciones || [])[0];
+        const img = normalizeImageUrl(portada?.url_foto ?? portada?.url) ?? piojoLogo;
+        const title = p.titulo ?? p.descripcion ?? 'Sin título';
+        const price = p.precio == null || p.precio === 0 ? 'Gratis' : `$${p.precio}`;
+        return (
+          <Card key={String(p.id_publicaciones ?? p.id)} className="overflow-hidden hover:shadow-lg transition-shadow">
+            <Link to={`/producto/${String(p.id_publicaciones ?? p.id)}`}>
+              <div className="h-48 overflow-hidden bg-gray-200 cursor-pointer relative">
+                <img src={img} alt={title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              </div>
+            </Link>
+
+            <CardHeader className="p-4 pb-2">
+              <Link to={`/producto/${String(p.id_publicaciones ?? p.id)}`}>
+                <CardTitle className="text-lg line-clamp-1 hover:text-blue-600 cursor-pointer">{title}</CardTitle>
+              </Link>
+            </CardHeader>
+
+            <CardContent className="p-4 pt-0">
+              <p className="text-xl font-bold text-green-600">{price}</p>
+            </CardContent>
+
+            <CardFooter className="p-4 pt-0">
+              <Button className="w-full gap-2" variant="outline">Ver Detalles</Button>
+            </CardFooter>
+          </Card>
+        );
+      })}
     </div>
   );
 }

@@ -142,6 +142,7 @@ export async function getMisVentas(userId: string): Promise<Product[]> {
 }
 
 function mapPublicacion(p: GQLPublicacion): Product {
+  const toHttps = (url?: string) => url?.replace(/^http:\/\//i, 'https://');
   const fotos = p.detallePublicaciones ?? [];
   const cover = fotos.find((f) => f.es_portada)?.url_foto ?? fotos[0]?.url_foto;
   return {
@@ -149,8 +150,8 @@ function mapPublicacion(p: GQLPublicacion): Product {
     name:        p.titulo,
     price:       p.precio,
     category:    toCategory(p.categoria),
-    image:       cover,
-    fotos:       fotos.map((f) => f.url_foto),
+    image:       toHttps(cover),
+    fotos:       fotos.map((f) => toHttps(f.url_foto)!),
     sku:         String(p.id_publicaciones),
     stock:       1,
     size:        p.talla,

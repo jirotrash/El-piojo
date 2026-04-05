@@ -48,7 +48,7 @@ const columns = (roles: Rol[], carreras: Carrera[], municipios: Municipio[]): Co
 	{ key: "apellido_paterno", label: "Apellido paterno" },
 	{ key: "apellido_materno", label: "Apellido materno" },
 	{ key: "email", label: "Email" },
-	{ key: "password", label: "Contraseña", render: () => '••••••' },
+
 	{ key: "telefono", label: "Teléfono" },
 	{ key: "matricula", label: "Matrícula" },
 	{ key: "fecha_registro", label: "Fecha registro", type: "date", render: (val) => {

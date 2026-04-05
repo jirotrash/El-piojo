@@ -1,25 +1,23 @@
 import Navbar from "@/components/Navbar";
+import AnimatedBackground from "@/components/AnimatedBackground";
 import HeroSection from "@/components/HeroSection";
 import HowItWorks from "@/components/HowItWorks";
-import CatalogPreview from "@/components/CatalogPreview";
 import Sustainability from "@/components/Sustainability";
-import Testimonials from "@/components/Testimonials";
 import CTABanner from "@/components/CTABanner";
-import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 
 const Index = () => {
   return (
-    <main className="min-h-screen bg-background transition-colors">
-      <Navbar />
-      <HeroSection />
-      <HowItWorks />
-      <CatalogPreview />
-      <Sustainability />
-      <Testimonials />
-      <CTABanner />
-      <ContactSection />
-      <Footer />
+    <main className="min-h-screen bg-background transition-colors relative">
+      <AnimatedBackground />
+      <div className="relative z-10">
+        <Navbar />
+        <HeroSection />
+        <HowItWorks />
+        <Sustainability />
+        <CTABanner />
+        <Footer />
+      </div>
     </main>
   );
 };

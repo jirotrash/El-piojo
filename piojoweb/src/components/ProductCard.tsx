@@ -1,6 +1,8 @@
 import React from 'react';
 import { ShoppingCart, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom'; // <--- Importar Link
+import normalizeImageUrl from '@/lib/normalizeImageUrl';
+import piojoLogo from '@/assets/piojo-logo.png';
 
 
 export interface Prenda {
@@ -27,10 +29,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ producto }) => {
       
       {/* EL ENLACE ENVUELVE A LA IMAGEN */}
       <Link to={`/producto/${producto.id}`} className="block relative h-48 overflow-hidden bg-gray-200 cursor-pointer">
-        <img 
-          src={producto.imagenes[0]} 
-          alt={producto.titulo} 
+        <img
+          src={normalizeImageUrl(producto.imagenes?.[0]) ?? piojoLogo}
+          alt={producto.titulo}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          onError={(e) => { (e.currentTarget as HTMLImageElement).src = piojoLogo; }}
         />
         <span className={`absolute top-2 right-2 px-2 py-1 text-xs font-bold rounded-full 
           ${producto.condicion === 'nuevo' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>

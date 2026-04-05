@@ -4,8 +4,8 @@ import { Platform } from 'react-native';
 
 export const API_URL =
   Platform.OS === 'android'
-    ? 'http://192.168.2.189:3000/graphql'
-    : 'http://localhost:3000/graphql';
+    ? 'https://api-elpiojo.utvt.cloud/graphql'
+    : 'https://api-elpiojo.utvt.cloud/graphql';
 
 export const UPLOAD_URL = API_URL.replace('/graphql', '/upload');
 

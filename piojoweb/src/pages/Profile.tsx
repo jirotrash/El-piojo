@@ -231,7 +231,9 @@ const Profile = () => {
     try {
       const s = String(src).trim();
       if (s.startsWith('data:')) return s;
-      if (s.startsWith('http://') || s.startsWith('https://')) return s;
+      if (s.startsWith('http://') || s.startsWith('https://')) {
+        return s.replace(/^http:\/\/api-elpiojo\.utvt\.cloud/i, 'https://api-elpiojo.utvt.cloud');
+      }
 
       // If it's a JSON string containing the image
       if (s.startsWith('{')) {
@@ -304,7 +306,7 @@ const Profile = () => {
           <div className="flex items-start gap-4">
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-4xl shrink-0">
               {normalizeFotoPerfil(currentUser?.foto_perfil) ? (
-                <img src={normalizeFotoPerfil(currentUser?.foto_perfil)} alt="avatar" className="w-full h-full object-cover rounded-2xl" />
+                <img src={normalizeFotoPerfil(currentUser?.foto_perfil) || ''} alt="avatar" className="w-full h-full object-cover rounded-2xl" />
               ) : (
                 <span className="text-3xl">👤</span>
               )}

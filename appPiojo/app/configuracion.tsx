@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Switch } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useColors } from '../src/hooks/useColors';
 import { useThemeStore } from '../src/context/themeStore';
+import { useAuthStore } from '../src/context/authStore';
 import type { ColorPalette } from '../src/theme/colors';
 
 export default function ConfiguracionScreen() {
@@ -12,6 +13,25 @@ export default function ConfiguracionScreen() {
   const colors = useColors();
   const styles = makeStyles(colors);
   const { mode, setMode } = useThemeStore();
+  const { logout } = useAuthStore();
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Cerrar Sesión',
+      '¿Estás seguro de que quieres salir?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Salir',
+          style: 'destructive',
+          onPress: () => {
+            logout();
+            router.replace('/');
+          },
+        },
+      ],
+    );
+  };
 
   const [pushNotifs, setPushNotifs] = useState(true);
   const [emailNotifs, setEmailNotifs] = useState(false);
@@ -86,9 +106,11 @@ export default function ConfiguracionScreen() {
 
         <Section title="CUENTA" />
         <View style={styles.card}>
-          <Row icon="person-circle" label="Editar perfil" color={colors.primary} />
+          <Row icon="person-circle" label="Editar perfil" color={colors.primary}
+            onPress={() => router.push('/editar-perfil')} />
           <View style={styles.divider} />
-          <Row icon="lock-closed" label="Cambiar contraseña" color={colors.secondary} />
+          <Row icon="lock-closed" label="Cambiar contraseña" color={colors.secondary}
+            onPress={() => router.push('/cambiar-contrasena')} />
           <View style={styles.divider} />
           <Row icon="school" label="Mostrar matrícula" color={colors.mint}
             right={
@@ -129,12 +151,28 @@ export default function ConfiguracionScreen() {
 
         <Section title="INFORMACIÓN" />
         <View style={styles.card}>
-          <Row icon="document-text" label="Términos y condiciones" color={colors.textSecondary} />
-          <View style={styles.divider} />
-          <Row icon="shield-checkmark" label="Política de privacidad" color={colors.textSecondary} />
-          <View style={styles.divider} />
           <Row icon="information-circle" label="Versión 1.0.0" color={colors.textMuted}
             right={<Text style={styles.versionText}>1.0.0</Text>}
+          />
+        </View>
+
+        <Section title="SISTEMA" />
+        <View style={styles.card}>
+          <Row
+            icon="shield"
+            label="Administración"
+            color={colors.neonCyan}
+            onPress={() => router.push('/admin-login')}
+          />
+        </View>
+
+        <Section title="CUENTA" />
+        <View style={styles.card}>
+          <Row
+            icon="log-out"
+            label="Cerrar Sesión"
+            color={colors.error}
+            onPress={handleLogout}
           />
         </View>
 

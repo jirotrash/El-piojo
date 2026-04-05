@@ -31,8 +31,8 @@ export default function PuntosEntregaPage() {
         const payload = {
           nombre: String(item.nombre ?? "").trim(),
           id_municipios: item.id_municipios ? Number(item.id_municipios) : undefined,
-          latitud: (item.latitud !== '' && item.latitud != null) ? Number(item.latitud) : undefined,
-          longitud: (item.longitud !== '' && item.longitud != null) ? Number(item.longitud) : undefined,
+          latitud: item.latitud != null ? Number(item.latitud) : undefined,
+          longitud: item.longitud != null ? Number(item.longitud) : undefined,
           descripcion: String(item.descripcion ?? ""),
         };
         if (!payload.nombre) { toast.error('Nombre requerido'); return; }
@@ -47,8 +47,8 @@ export default function PuntosEntregaPage() {
         const payload = {
           nombre: String(item.nombre ?? "").trim(),
           id_municipios: item.id_municipios ? Number(item.id_municipios) : undefined,
-          latitud: (item.latitud !== '' && item.latitud != null) ? Number(item.latitud) : undefined,
-          longitud: (item.longitud !== '' && item.longitud != null) ? Number(item.longitud) : undefined,
+          latitud: item.latitud != null ? Number(item.latitud) : undefined,
+          longitud: item.longitud != null ? Number(item.longitud) : undefined,
           descripcion: String(item.descripcion ?? ""),
         };
         if (!payload.nombre) { toast.error('Nombre requerido'); return; }

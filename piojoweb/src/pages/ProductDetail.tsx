@@ -14,8 +14,9 @@ import usePagosMutations from "./Dashboard/hooks/usePagosMutations";
 import usePublicacionesMutations from "./Dashboard/hooks/usePublicacionesMutations";
 import { useAuth } from "@/components/AuthProvider";
 import { toast } from "@/hooks/use-toast";
-import { PRODUCTOS } from "@/data/products";
 import MessageList from "@/components/chat/MessageList";
+import normalizeImageUrl from '@/lib/normalizeImageUrl';
+import piojoLogo from '@/assets/piojo-logo.png';
 import type { ChatMessage as NormalizedChatMessage } from "@/components/chat/MessageList";
 import ChatInput from "@/components/chat/ChatInput";
 
@@ -79,7 +80,7 @@ const ProductDetail = () => {
   const { data: mensajesData = [], refetch: refetchMensajes } = useDetalleMensajesApi();
   const { data: usuariosData = [], refetch: refetchUsuarios } = useUsuarioApi(1, 10000);
   const { createConversacion, createDetalleMensaje } = useMensajesMutations();
-  const { createPago, createDetalleVenta } = usePagosMutations();
+  const { createPago } = usePagosMutations();
   const { updatePublicacion } = usePublicacionesMutations();
   const { token, user: authUser } = useAuth();
   const navigate = useNavigate();
@@ -99,27 +100,12 @@ const ProductDetail = () => {
   const item = (function () {
       if (pub) {
         const priceRaw = pub.precio ?? null;
-        const price = priceRaw === null || priceRaw === 0 || priceRaw === '0' ? 'Gratis' : String(priceRaw).startsWith('$') ? String(priceRaw) : `$${String(priceRaw)}`;
+        const price = priceRaw === null || priceRaw === 0 ? 'Gratis' : String(priceRaw).startsWith('$') ? String(priceRaw) : `$${String(priceRaw)}`;
         const tag = (price === 'Gratis' || !priceRaw) ? 'Donación' : 'Venta';
-        const detalles = pub.detallePublicaciones || pub.detalle_publicaciones || [];
-        const processUrl = (raw: any) => {
-          let url: string | null = raw?.url_foto ?? raw?.url ?? raw ?? null;
-          if (!url) return null;
-          try {
-            const isAbsolute = /^https?:\/\//i.test(url) || url.startsWith('data:') || url.startsWith('blob:');
-            if (!isAbsolute && url.startsWith('/')) {
-              const GRAPHQL = (import.meta.env.VITE_GRAPHQL_URL as string) ?? '/graphql';
-              if (/^https?:\/\//i.test(GRAPHQL)) {
-                const base = GRAPHQL.replace(/\/graphql\/?$/, '');
-                url = base + url;
-              }
-            }
-          } catch (e) {}
-          return url;
-        };
+        const detalles = pub.detallePublicaciones || [];
 
         const images = Array.isArray(detalles) && detalles.length > 0
-          ? detalles.map((d: any) => processUrl(d)).filter(Boolean) as string[]
+          ? detalles.map((d: any) => normalizeImageUrl(d?.url_foto ?? d?.url ?? d)).filter(Boolean) as string[]
           : [];
 
         return {
@@ -137,24 +123,7 @@ const ProductDetail = () => {
           images,
         } as any;
       }
-    // fallback: try PRODUCTOS (used by public catalog) for images, else use static allItems
-    const prod = PRODUCTOS.find((p) => Number(p.id) === idNum || Number(p.id) === idNum);
-    if (prod) {
-      return {
-        id: idNum,
-        name: prod.titulo,
-        price: prod.precio == null || prod.precio === 0 ? 'Gratis' : `$${prod.precio}`,
-        condition: prod.condicion ?? '',
-        tag: prod.precio == null || prod.precio === 0 ? 'Donación' : 'Venta',
-        size: prod.talla ?? '',
-        gender: 'Unisex',
-        category: prod.categoria ?? 'Varios',
-        description: prod.descripcion ?? '',
-        seller: String(prod.vendedorId ?? 'Vendedor'),
-        emoji: '🧺',
-        images: Array.isArray(prod.imagenes) ? prod.imagenes : [],
-      } as any;
-    }
+    // no PRODUCTOS fallback anymore; rely on backend `publicaciones` or static `allItems`
     return allItems.find((i) => i.id === idNum);
   })();
 
@@ -391,12 +360,6 @@ const ProductDetail = () => {
         estado: 'PENDIENTE',
       });
       if (pago?.id_pagos) {
-        await createDetalleVenta({
-          id_pagos: Number(pago.id_pagos),
-          id_publicaciones: idNum,
-          cantidad: 1,
-          subtotal: priceNum,
-        });
         // Mark publication as sold/unavailable
         try { await updatePublicacion(idNum, { disponible: false }); } catch (_) { /* non-critical */ }
         // Persist purchase in localStorage for "Mis compras" tab
@@ -611,7 +574,7 @@ const ProductDetail = () => {
                           interested.map((u: any) => (
                             <div key={String(u.id_usuarios ?? u.id)} className="flex items-center gap-2 bg-muted/40 px-2 py-1 rounded-md">
                               {u?.foto_perfil ? (
-                                <img src={String(u.foto_perfil)} alt={u?.nombre ?? 'U'} className="w-8 h-8 rounded-full object-cover" />
+                                <img src={normalizeImageUrl(u?.foto_perfil) ?? piojoLogo} alt={u?.nombre ?? 'U'} className="w-8 h-8 rounded-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).src = piojoLogo; }} />
                               ) : (
                                 <div className="w-8 h-8 rounded-full bg-gradient-hero flex items-center justify-center text-primary-foreground font-bold">{String(u?.nombre ?? '')?.[0] ?? '?'}</div>
                               )}

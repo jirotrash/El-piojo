@@ -10,6 +10,7 @@ import useUsuarioApi from "@/pages/Dashboard/hooks/useUsuarioApi";
 import useConversacionesApi from "@/pages/Dashboard/hooks/useConversacionesApi";
 import useDetalleMensajesApi from "@/pages/Dashboard/hooks/useDetalleMensajesApi";
 import useMensajesMutations from "@/pages/Dashboard/hooks/useMensajesMutations";
+import normalizeImageUrl from '@/lib/normalizeImageUrl';
 import MessageList from "@/components/chat/MessageList";
 import ChatInput from "@/components/chat/ChatInput";
 
@@ -81,13 +82,18 @@ const Navbar = () => {
   const avatarSrc = (v: any) => {
     if (!v) return null;
     try {
-      if (typeof v === 'string' && v.startsWith('data:')) return v;
-      if (typeof v === 'string' && (v.startsWith('http') || v.startsWith('/'))) return v;
+      if (typeof v === 'string') return normalizeImageUrl(v);
+      if (typeof v === 'object') {
+        const candidate = v?.foto_perfil ?? v?.url_foto ?? v?.url ?? null;
+        return normalizeImageUrl(candidate);
+      }
       return null;
     } catch {
       return null;
     }
   };
+
+  const handleImgError = (e: any) => { (e.currentTarget as HTMLImageElement).src = piojoLogo; };
 
   const lastMessageByConv: Record<string, any> = {};
   (mensajesData || []).forEach((m: any) => {
@@ -145,8 +151,8 @@ const Navbar = () => {
     try {
       const conv = (conversacionesData || []).find((c: any) => String(c.id_conversaciones) === String(activeConvId));
       if (conv) {
-        const pubId = conv.publicacion?.id_publicaciones ?? conv.publicacion?.id ?? null;
-        const sellerId = conv.vendedor?.id_usuarios ?? conv.vendedor?.id ?? conv.id_vendedor ?? null;
+        const pubId = conv.id_publicaciones ?? null;
+        const sellerId = conv.id_vendedor ?? null;
         const userId = currentUser?.id_usuarios ?? currentUser?.id ?? 'anon';
         const key = `local_conv_pub_${pubId}_u${userId}_s${sellerId ?? ''}`;
         const raw = localStorage.getItem(key);
@@ -157,7 +163,7 @@ const Navbar = () => {
               const id = m.id ?? m.id_detalle_mensajes ?? `local_${String(m.senderId ?? Date.now())}_${Math.random()}`;
               const text = m.mensaje ?? m.text ?? String(m);
               const senderId = m.senderId ?? m.id_emisor ?? (m.from === 'user' ? userId : sellerId) ?? null;
-              const senderName = m.senderName ?? (m.from === 'user' ? (currentUser?.nombre ?? currentUser?.email ?? 'Tú') : (conv.vendedor?.nombre ?? conv.comprador?.nombre ?? null));
+              const senderName = m.senderName ?? (m.from === 'user' ? (currentUser?.nombre ?? currentUser?.email ?? 'Tú') : 'Vendedor');
               const from = String(senderId) === String(userId) ? 'user' : 'seller';
               const createdAt = m.createdAt ?? m.fecha_envio ?? null;
               return { id, text, from, senderId, senderName, createdAt };
@@ -206,7 +212,7 @@ const Navbar = () => {
     <nav>
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
         <a href="#inicio" className="flex items-center gap-2">
-          <img src={piojoLogo} alt="Piojo logo" className="h-10 w-10 rounded-full object-cover" />
+              <img src={piojoLogo} alt="Piojo logo" className="h-10 w-10 rounded-full object-cover" onError={handleImgError} />
           <span className="font-display text-xl font-bold text-primary">PIOJO</span>
           <span className="hidden sm:inline-block text-xs font-body text-muted-foreground bg-muted px-2 py-0.5 rounded-full">2da mano</span>
         </a>
@@ -307,7 +313,7 @@ const Navbar = () => {
                             <button key={c.id_conversaciones} onClick={() => { setActiveConvId(Number(c.id_conversaciones)); setOpenChatWindow(true); setOpenMessages(false); setReadMap(prev => ({ ...prev, [String(c.id_conversaciones)]: true })); try { refetchMensajes && refetchMensajes(); refetchConvs && refetchConvs(); } catch {} }} className="w-full text-left flex items-center gap-3 px-3 py-2 hover:bg-muted rounded-md">
                               <div className="relative flex-shrink-0">
                                 {avatar ? (
-                                  <img src={avatar} alt={name} className="w-10 h-10 rounded-full object-cover" />
+                                  <img src={avatar} alt={name} className="w-10 h-10 rounded-full object-cover" onError={handleImgError} />
                                 ) : (
                                   <div className="w-10 h-10 rounded-full bg-gradient-hero flex items-center justify-center text-primary-foreground font-bold">{String(name)?.[0] ?? '?'}</div>
                                 )}
@@ -337,7 +343,7 @@ const Navbar = () => {
               <div className="relative">
                 <button onClick={() => setOpen(!open)} aria-haspopup="true" className="inline-flex items-center gap-2 text-foreground/90 hover:text-primary transition-colors">
                   {avatarSrc(currentUser?.foto_perfil) ? (
-                    <img src={avatarSrc(currentUser?.foto_perfil)} alt="avatar" className="h-8 w-8 rounded-full object-cover" />
+                    <img src={avatarSrc(currentUser?.foto_perfil) || ''} alt="avatar" className="h-8 w-8 rounded-full object-cover" onError={handleImgError} />
                   ) : (
                     <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-sm">{(currentUser?.nombre || 'U').charAt(0)}</div>
                   )}
@@ -451,7 +457,7 @@ const Navbar = () => {
                       <button key={c.id_conversaciones} onClick={() => { setActiveConvId(Number(c.id_conversaciones)); setReadMap(prev => ({ ...prev, [String(c.id_conversaciones)]: true })); try { refetchMensajes && refetchMensajes(); refetchConvs && refetchConvs(); } catch {} }} className="w-full text-left px-3 py-3 hover:bg-muted rounded-md flex items-center gap-3">
                         <div className="flex-shrink-0">
                           {avatar ? (
-                            <img src={avatar} alt={name} className="w-10 h-10 rounded-full object-cover" />
+                            <img src={avatar} alt={name} className="w-10 h-10 rounded-full object-cover" onError={handleImgError} />
                           ) : (
                             <div className="w-10 h-10 rounded-full bg-gradient-hero flex items-center justify-center text-primary-foreground font-bold">{String(name)?.[0] ?? '?'}</div>
                           )}

@@ -4,10 +4,12 @@ import type { ColumnDef } from "../components/CrudTable";
 import type { HistorialTrato } from "../lib/mock-data";
 import useHistorialTratosApi from "../hooks/useHistorialTratosApi";
 import useUsuarioApi from "../hooks/useUsuarioApi";
+import useHistorialTratosMutations from "../hooks/useHistorialTratosMutations";
 
 export default function HistorialTratosPage() {
-  const { data: historialData = [] } = useHistorialTratosApi();
+  const { data: historialData = [], refetch } = useHistorialTratosApi();
   const { data: usuariosData = [] } = useUsuarioApi();
+  const { createHistorialTrato, updateHistorialTrato, removeHistorialTrato } = useHistorialTratosMutations();
 
   const [data, setData] = useState<HistorialTrato[]>(historialData);
   useEffect(() => { setData(historialData); }, [historialData]);
@@ -26,9 +28,24 @@ export default function HistorialTratosPage() {
 
   return (
     <CrudTable title="Historial de Tratos" data={data} columns={columns} idKey="id_historial_tratos"
-      onAdd={(item) => setData([...data, { ...item, id_historial_tratos: data.length + 1 } as HistorialTrato])}
-      onEdit={(item) => setData(data.map(d => d.id_historial_tratos === item.id_historial_tratos ? item : d))}
-      onDelete={(id) => setData(data.filter(d => d.id_historial_tratos !== id))}
+      onAdd={async (item) => {
+        try {
+          await createHistorialTrato(item as Record<string, any>);
+          await refetch();
+        } catch (err) { console.error(err); }
+      }}
+      onEdit={async (item) => {
+        try {
+          await updateHistorialTrato(Number((item as any).id_historial_tratos), item as Record<string, any>);
+          await refetch();
+        } catch (err) { console.error(err); }
+      }}
+      onDelete={async (id) => {
+        try {
+          await removeHistorialTrato(Number(id));
+          await refetch();
+        } catch (err) { console.error(err); }
+      }}
     />
   );
 }

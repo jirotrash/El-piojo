@@ -5,11 +5,13 @@ import type { DetalleMensaje } from "../lib/mock-data";
 import useDetalleMensajesApi from "../hooks/useDetalleMensajesApi";
 import useConversacionesApi from "../hooks/useConversacionesApi";
 import useUsuarioApi from "../hooks/useUsuarioApi";
+import useDetalleMensajesMutations from "../hooks/useDetalleMensajesMutations";
 
 export default function MensajesPage() {
-  const { data: mensajesData = [] } = useDetalleMensajesApi();
+  const { data: mensajesData = [], refetch } = useDetalleMensajesApi();
   const { data: conversacionesData = [] } = useConversacionesApi();
   const { data: usuariosData = [] } = useUsuarioApi();
+  const { createDetalleMensaje, updateDetalleMensaje, removeDetalleMensaje } = useDetalleMensajesMutations();
 
   const [data, setData] = useState<DetalleMensaje[]>(mensajesData);
   useEffect(() => { setData(mensajesData); }, [mensajesData]);
@@ -27,9 +29,24 @@ export default function MensajesPage() {
 
   return (
     <CrudTable title="Mensajes" data={data} columns={columns} idKey="id_detalle_mensajes"
-      onAdd={(item) => setData([...data, { ...item, id_detalle_mensajes: data.length + 1 } as DetalleMensaje])}
-      onEdit={(item) => setData(data.map(d => d.id_detalle_mensajes === item.id_detalle_mensajes ? item : d))}
-      onDelete={(id) => setData(data.filter(d => d.id_detalle_mensajes !== id))}
+      onAdd={async (item) => {
+        try {
+          await createDetalleMensaje(item as Record<string, any>);
+          await refetch();
+        } catch (err) { console.error(err); }
+      }}
+      onEdit={async (item) => {
+        try {
+          await updateDetalleMensaje(Number((item as any).id_detalle_mensajes), item as Record<string, any>);
+          await refetch();
+        } catch (err) { console.error(err); }
+      }}
+      onDelete={async (id) => {
+        try {
+          await removeDetalleMensaje(Number(id));
+          await refetch();
+        } catch (err) { console.error(err); }
+      }}
     />
   );
 }

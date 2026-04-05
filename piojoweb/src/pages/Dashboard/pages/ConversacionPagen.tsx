@@ -5,11 +5,13 @@ import type { Conversacion } from "../lib/mock-data";
 import useConversacionesApi from "../hooks/useConversacionesApi";
 import usePublicacionesApi from "../hooks/usePublicacionesApi";
 import useUsuarioApi from "../hooks/useUsuarioApi";
+import useConversacionesMutations from "../hooks/useConversacionesMutations";
 
 export default function ConversacionesPage() {
-  const { data: conversacionesData = [] } = useConversacionesApi();
+  const { data: conversacionesData = [], refetch } = useConversacionesApi();
   const { data: publicacionesData = [] } = usePublicacionesApi();
   const { data: usuariosData = [] } = useUsuarioApi();
+  const { createConversacion, updateConversacion, removeConversacion } = useConversacionesMutations();
 
   const [data, setData] = useState<Conversacion[]>(conversacionesData);
   useEffect(() => { setData(conversacionesData); }, [conversacionesData]);
@@ -27,9 +29,24 @@ export default function ConversacionesPage() {
 
   return (
     <CrudTable title="Conversaciones" data={data} columns={columns} idKey="id_conversaciones"
-      onAdd={(item) => setData([...data, { ...item, id_conversaciones: data.length + 1 } as Conversacion])}
-      onEdit={(item) => setData(data.map(d => d.id_conversaciones === item.id_conversaciones ? item : d))}
-      onDelete={(id) => setData(data.filter(d => d.id_conversaciones !== id))}
+      onAdd={async (item) => {
+        try {
+          await createConversacion(item as Record<string, any>);
+          await refetch();
+        } catch (err) { console.error(err); }
+      }}
+      onEdit={async (item) => {
+        try {
+          await updateConversacion(Number((item as any).id_conversaciones), item as Record<string, any>);
+          await refetch();
+        } catch (err) { console.error(err); }
+      }}
+      onDelete={async (id) => {
+        try {
+          await removeConversacion(Number(id));
+          await refetch();
+        } catch (err) { console.error(err); }
+      }}
     />
   );
 }

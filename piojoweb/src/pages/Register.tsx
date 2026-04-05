@@ -127,6 +127,7 @@ const Register = () => {
         foto_perfil: fotoPerfilBase64,
         id_carreras: form.carrera ? Number(form.carrera) : null,
         id_municipios: form.municipio ? Number(form.municipio) : null,
+        id_roles: 2, // Usuario por defecto
       };
 
       // sending input

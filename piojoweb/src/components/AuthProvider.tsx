@@ -78,7 +78,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const login = async (username: string, password: string) => {
-    const loginUrl = (import.meta as any).env?.VITE_API_LOGIN_URL || "";
+    let loginUrl = (import.meta as any).env?.VITE_API_LOGIN_URL || "";
+    if (loginUrl && /^http:\/\/api-elpiojo\.utvt\.cloud/i.test(loginUrl)) {
+      loginUrl = loginUrl.replace(/^http:/i, 'https:');
+    }
     const allowMock = (import.meta as any).env?.VITE_AUTH_ALLOW_MOCK === "true";
 
     const normalizedEmail = String(username ?? "").trim().toLowerCase();
@@ -170,7 +173,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const useAuth = () => useContext(AuthContext);
 
-export const RequireAuth = ({ children, redirectTo = "/login" }: { children: JSX.Element; redirectTo?: string }) => {
+export const RequireAuth = ({ children, redirectTo = "/login" }: { children: React.ReactElement; redirectTo?: string }) => {
   const { token, ready } = useAuth();
   const location = useLocation();
 
